@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LASAMBUS — Export Report</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <div class="lasambus-layout">
+    <div id="header-placeholder"></div>
+    <div id="sidebar-placeholder"></div>
+
+    <main class="lasambus-main">
+      <h1 class="page-title">Export Report</h1>
+
+      <div class="card" style="max-width:520px;">
+        <form id="exportForm">
+          <div class="form-group">
+            <label>Row Range</label>
+            <select id="row-range" onchange="handleRangeChange(this.value)">
+              <option value="50">1 – 50</option>
+              <option value="100">1 – 100</option>
+              <option value="150">1 – 150</option>
+              <option value="200">1 – 200</option>
+              <option value="250">1 – 250</option>
+              <option value="300">1 – 300</option>
+              <option value="full">Full Table</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          <!-- Custom range (shown only when Custom is selected) -->
+          <div id="custom-range-group" class="hidden">
+            <div class="form-row">
+              <div class="form-group">
+                <label>From (Row)</label>
+                <input type="number" id="custom-from" placeholder="1" min="1" value="1" />
+              </div>
+              <div class="form-group">
+                <label>To (Row)</label>
+                <input type="number" id="custom-to" placeholder="e.g. 75" min="1" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Export Format</label>
+            <select id="export-format">
+              <option value="csv">CSV</option>
+              <option value="excel">Excel (.xlsx)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-download"></i> Export
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+  </div>
+
+  <script src="../js/components.js"></script>
+  <script>
+    function handleRangeChange(value) {
+      const customGroup = document.getElementById('custom-range-group');
+      customGroup.classList.toggle('hidden', value !== 'custom');
+    }
+
+    document.getElementById('exportForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const range = document.getElementById('row-range').value;
+      const format = document.getElementById('export-format').value;
+
+      if (range === 'custom') {
+        const from = document.getElementById('custom-from').value;
+        const to = document.getElementById('custom-to').value;
+        if (!from || !to || Number(to) < Number(from)) {
+          alert('Please enter a valid row range.');
+          return;
+        }
+      }
+
+      alert(`Export triggered: ${range} rows as ${format.toUpperCase()}. (Backend will generate file in Phase 4.)`);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LASAMBUS — Cases</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <div class="lasambus-layout">
+    <div id="header-placeholder"></div>
+    <div id="sidebar-placeholder"></div>
+
+    <main class="lasambus-main">
+      <h1 class="page-title">Cases</h1>
+
+      <div class="card">
+        <!-- Search, Filters, New Case -->
+        <div class="flex justify-between align-center mb-16" style="flex-wrap:wrap; gap:12px;">
+          <div class="search-row" style="flex:1;">
+            <input type="text" id="search-case-id" placeholder="Case ID" style="max-width:140px;" />
+            <input type="date" id="filter-date" style="max-width:160px;" />
+            <select id="filter-lga" style="max-width:180px;">
+              <option value="">Filter by LGA/LCDA</option>
+              <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+              <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+              <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+              <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+              <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+              <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+              <option>Somolu</option><option>Surulere</option>
+            </select>
+            <button class="btn btn-icon btn-primary" id="btn-search" title="Search">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+          <a href="new-case.html" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Case
+          </a>
+        </div>
+
+        <!-- Cases Table -->
+        <div class="table-wrapper">
+          <table id="cases-table">
+            <thead>
+              <tr>
+                <th>S/N</th>
+                <th>Case ID</th>
+                <th>Date of Incident</th>
+                <th>Report Time</th>
+                <th>Incident Type</th>
+                <th>LGA/LCDA</th>
+                <th>Location</th>
+                <th>Dispatch Time</th>
+                <th>Case Status</th>
+              </tr>
+            </thead>
+            <tbody id="cases-table-body">
+              <tr>
+                <td>1</td>
+                <td><a href="#" class="case-id-link" data-id="33162" onclick="openCaseOverlay('33162'); return false;">33162</a></td>
+                <td>12/05/2026</td>
+                <td>08:14:00</td>
+                <td>Road Traffic Accident</td>
+                <td>Ojota</td>
+                <td>Ojota, Lagos</td>
+                <td>08:22:32</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><a href="#" class="case-id-link" data-id="33161" onclick="openCaseOverlay('33161'); return false;">33161</a></td>
+                <td>11/05/2026</td>
+                <td>14:30:00</td>
+                <td>Medical Emergency</td>
+                <td>Eti-Osa</td>
+                <td>Lekki Phase 1</td>
+                <td>14:36:15</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><a href="#" class="case-id-link" data-id="33160" onclick="openCaseOverlay('33160'); return false;">33160</a></td>
+                <td>11/05/2026</td>
+                <td>10:05:00</td>
+                <td>Fire Incident</td>
+                <td>Ojo</td>
+                <td>Alaba International Market</td>
+                <td>10:15:00</td>
+                <td><span class="status-badge status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><a href="#" class="case-id-link" data-id="33159" onclick="openCaseOverlay('33159'); return false;">33159</a></td>
+                <td>10/05/2026</td>
+                <td>03:20:00</td>
+                <td>Obstetric/Gynecological</td>
+                <td>Mushin</td>
+                <td>Mushin</td>
+                <td>03:27:20</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><a href="#" class="case-id-link" data-id="33158" onclick="openCaseOverlay('33158'); return false;">33158</a></td>
+                <td>10/05/2026</td>
+                <td>11:00:00</td>
+                <td>Trauma</td>
+                <td>Eti-Osa</td>
+                <td>Victoria Island</td>
+                <td>11:09:45</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-row mt-16">
+          <span id="pagination-info">Showing 1–5 of 5 cases</span>
+          <div class="pagination-controls">
+            <button class="page-btn" id="btn-prev">Previous</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn" id="btn-next">Next</button>
+            <button class="page-btn" id="btn-last">Last</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+  </div>
+
+  <!-- Specific Case Overlay -->
+  <div class="overlay-backdrop" id="case-overlay">
+    <div class="overlay-panel">
+      <button class="overlay-back-btn" onclick="closeCaseOverlay()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+
+      <h2 class="page-title" id="overlay-title">Case — Road Traffic Accident at Ojota</h2>
+
+      <!-- In-page nav -->
+      <div class="inpage-nav">
+        <button class="inpage-tab active" onclick="switchTab('overview', this)">Overview</button>
+        <button class="inpage-tab" onclick="switchTab('dispatch', this)">Dispatch</button>
+        <button class="inpage-tab" onclick="switchTab('arrival', this)">Arrival</button>
+        <button class="inpage-tab" onclick="switchTab('patient-form', this)">Patient Entry Form</button>
+        <button class="inpage-tab" onclick="switchTab('patient-list', this)">Patient List</button>
+      </div>
+
+      <!-- Overview Tab -->
+      <div class="tab-pane active" id="tab-overview">
+        <div class="card">
+          <div class="info-grid" id="overview-view">
+            <div class="info-row"><span class="info-label">Case ID</span><span class="info-value" id="ov-case-id">33162</span></div>
+            <div class="info-row"><span class="info-label">Date of Incident</span><span class="info-value" id="ov-date">12/05/2026</span></div>
+            <div class="info-row"><span class="info-label">Report Time</span><span class="info-value" id="ov-report-time">08:14:00</span></div>
+            <div class="info-row"><span class="info-label">Dispatch Time</span><span class="info-value" id="ov-dispatch-time">N/A</span></div>
+            <div class="info-row"><span class="info-label">Incident Type</span><span class="info-value" id="ov-incident-type">Road Traffic Accident</span></div>
+            <div class="info-row"><span class="info-label">Incident Severity</span><span class="info-value" id="ov-severity">Major</span></div>
+            <div class="info-row"><span class="info-label">LGA/LCDA</span><span class="info-value" id="ov-lga">Ojota</span></div>
+            <div class="info-row"><span class="info-label">Location</span><span class="info-value" id="ov-location">Ojota, Lagos</span></div>
+            <div class="info-row"><span class="info-label">Case Status</span><span class="info-value" id="ov-status"><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></span></div>
+          </div>
+
+          <!-- Edit mode (hidden by default) -->
+          <div id="overview-edit" class="hidden">
+            <div class="form-group">
+              <label>Incident Type</label>
+              <select id="edit-incident-type">
+                <option>Road Traffic Accident</option><option>Trauma</option>
+                <option>Fire Incident</option><option>Medical Emergencies</option>
+                <option>Obstetric/Gynecological</option><option>Pediatrics</option>
+                <option>Environmental</option><option>Behavioural Health</option>
+                <option>Mass Casualty</option><option>Vehicle Extrication</option>
+                <option>Special Events</option><option>Elderly Care</option>
+                <option>Non-Emergency Transport</option><option>Public Assistance</option>
+                <option>Mass Casualty Incident (MCI)</option><option>Hazards/Disasters</option>
+                <option>Others</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Incident Severity</label>
+              <select id="edit-severity">
+                <option>Minor</option><option>Moderate</option><option>Major</option>
+                <option>Severe</option><option>Critical</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>LGA/LCDA</label>
+              <select id="edit-lga">
+                <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+                <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+                <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+                <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+                <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+                <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+                <option>Somolu</option><option>Surulere</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="edit-location" />
+            </div>
+            <div class="form-group">
+              <label>Case Status</label>
+              <select id="edit-status">
+                <option>Active</option><option>Complete</option><option>Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex gap-8 mt-16">
+            <button class="btn btn-outline" id="btn-edit-case" onclick="toggleEditMode(true)">
+              <i class="bi bi-pencil"></i> Edit Case
+            </button>
+            <button class="btn btn-primary hidden" id="btn-save-overview" onclick="saveOverview()">
+              <i class="bi bi-floppy"></i> Save
+            </button>
+            <button class="btn btn-secondary hidden" id="btn-cancel-edit" onclick="toggleEditMode(false)">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dispatch Tab -->
+      <div class="tab-pane" id="tab-dispatch">
+        <div class="card">
+          <!-- New entry state -->
+          <div id="dispatch-form">
+            <div class="form-group">
+              <label>Date of Incident</label>
+              <input type="date" id="dispatch-date" />
+            </div>
+            <div class="form-group">
+              <label>Dispatch Time</label>
+              <input type="time" id="dispatch-time" step="1" />
+            </div>
+            <div class="form-group">
+              <label>Select Ambulance</label>
+              <select id="dispatch-ambulance">
+                <option value="">-- Select Available Ambulance --</option>
+                <option>AMB-001 — Toyota HiAce</option>
+                <option>AMB-003 — Mercedes Sprinter</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Paramedics</label>
+              <div id="paramedic-selected-list" style="margin-bottom:8px;"></div>
+              <button class="btn btn-outline btn-icon" onclick="addParamedicRow()">
+                <i class="bi bi-plus-lg"></i> Add Paramedic
+              </button>
+              <select id="paramedic-select-dropdown" class="hidden" style="margin-top:8px;">
+                <option value="">-- Select Paramedic --</option>
+                <option>jdoe — John Doe</option>
+                <option>asmith — Alice Smith</option>
+                <option>bjohnson — Bob Johnson</option>
+              </select>
+            </div>
+            <button class="btn btn-primary mt-16" onclick="saveDispatch()">
+              <i class="bi bi-send"></i> Dispatch
+            </button>
+          </div>
+
+          <!-- Saved state (hidden by default) -->
+          <div id="dispatch-saved" class="hidden">
+            <div class="info-grid">
+              <div class="info-row"><span class="info-label">Date of Incident</span><span class="info-value" id="saved-dispatch-date">—</span></div>
+              <div class="info-row"><span class="info-label">Dispatch Time</span><span class="info-value" id="saved-dispatch-time">—</span></div>
+              <div class="info-row"><span class="info-label">Ambulance</span><span class="info-value" id="saved-ambulance">—</span></div>
+              <div class="info-row"><span class="info-label">Paramedics</span><span class="info-value" id="saved-paramedics">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrival Tab -->
+      <div class="tab-pane" id="tab-arrival">
+        <div class="card">
+          <div id="arrival-form">
+            <div class="form-group">
+              <label>Arrived Date</label>
+              <input type="date" id="arrival-date" />
+            </div>
+            <div class="form-group">
+              <label>Arrived Time</label>
+              <input type="time" id="arrival-time" step="1" />
+            </div>
+            <div class="form-group">
+              <label>Situation on Arrival</label>
+              <select id="arrival-situation">
+                <option value="">-- Select --</option>
+                <option>Nothing Sighted</option>
+                <option>No Victim</option>
+                <option>Corpse</option>
+                <option>Live Victim/Treat and Discharge</option>
+                <option>Evacuation</option>
+                <option>Not Attended</option>
+              </select>
+            </div>
+            <button class="btn btn-primary mt-16" onclick="saveArrival()">
+              <i class="bi bi-geo-alt"></i> Arrived
+            </button>
+          </div>
+
+          <div id="arrival-saved" class="hidden">
+            <div class="info-grid">
+              <div class="info-row"><span class="info-label">Arrived Date</span><span class="info-value" id="saved-arrival-date">—</span></div>
+              <div class="info-row"><span class="info-label">Arrived Time</span><span class="info-value" id="saved-arrival-time">—</span></div>
+              <div class="info-row"><span class="info-label">Situation on Arrival</span><span class="info-value" id="saved-situation">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Entry Form Tab -->
+      <div class="tab-pane" id="tab-patient-form">
+        <div class="card">
+          <!-- Progress bar -->
+          <div class="form-progress" id="patient-progress">
+            <div class="progress-step current"><div class="step-dot">1</div><div class="step-label">Patient Info</div></div>
+            <div class="progress-step"><div class="step-dot">2</div><div class="step-label">Assessment</div></div>
+            <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Medical Hx</div></div>
+            <div class="progress-step"><div class="step-dot">4</div><div class="step-label">Primary Assess</div></div>
+            <div class="progress-step"><div class="step-dot">5</div><div class="step-label">Treatment</div></div>
+            <div class="progress-step"><div class="step-dot">6</div><div class="step-label">Hospital</div></div>
+            <div class="progress-step"><div class="step-dot">7</div><div class="step-label">Additional</div></div>
+          </div>
+
+          <!-- Page 1: Patient Information -->
+          <div class="patient-page active" id="patient-page-1">
+            <h3 class="section-heading mb-16">Patient Information</h3>
+            <div class="form-group">
+              <label>Patient's Full Name <span class="req">*</span></label>
+              <input type="text" id="p-fullname" placeholder="Full Name" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="p-age" placeholder="Age" min="0" max="120" />
+              </div>
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="p-gender">
+                  <option value="">-- Select --</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Home Address</label>
+              <input type="text" id="p-address" placeholder="Home Address" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>State of Origin</label>
+                <select id="p-state">
+                  <option value="">-- Select State --</option>
+                  <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option>
+                  <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
+                  <option>Benue</option><option>Borno</option><option>Cross River</option>
+                  <option>Delta</option><option>Ebonyi</option><option>Edo</option>
+                  <option>Ekiti</option><option>Enugu</option><option>FCT</option>
+                  <option>Gombe</option><option>Imo</option><option>Jigawa</option>
+                  <option>Kaduna</option><option>Kano</option><option>Katsina</option>
+                  <option>Kebbi</option><option>Kogi</option><option>Kwara</option>
+                  <option>Lagos</option><option>Nasarawa</option><option>Niger</option>
+                  <option>Ogun</option><option>Ondo</option><option>Osun</option>
+                  <option>Oyo</option><option>Plateau</option><option>Rivers</option>
+                  <option>Sokoto</option><option>Taraba</option><option>Yobe</option>
+                  <option>Zamfara</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>LGA</label>
+                <select id="p-lga">
+                  <option value="">-- Select LGA --</option>
+                  <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+                  <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+                  <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+                  <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+                  <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+                  <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+                  <option>Somolu</option><option>Surulere</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="p-phone" placeholder="e.g. 08012345678" />
+              </div>
+              <div class="form-group">
+                <label>Occupation</label>
+                <input type="text" id="p-occupation" placeholder="Occupation" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 2: General Assessment -->
+          <div class="patient-page" id="patient-page-2">
+            <h3 class="section-heading mb-16">General Assessment</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Respiratory Rate (rpm)</label>
+                <input type="number" id="p-resp-rate" placeholder="e.g. 18" />
+              </div>
+              <div class="form-group">
+                <label>Temperature (°C)</label>
+                <input type="number" id="p-temp" placeholder="e.g. 36.6" step="0.1" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Condition of Patient on Arrival</label>
+              <select id="p-condition">
+                <option value="">-- Select --</option>
+                <option>Stable</option>
+                <option>Unstable</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Oxygen Saturation (SpO2%) on Room Air</label>
+              <input type="text" id="p-spo2" placeholder="e.g. 98%" />
+            </div>
+          </div>
+
+          <!-- Page 3: Medical History -->
+          <div class="patient-page" id="patient-page-3">
+            <h3 class="section-heading mb-16">Medical History</h3>
+            <div class="form-group">
+              <label>Gastrointestinal</label>
+              <input type="text" id="p-gastro" placeholder="Gastrointestinal history" />
+            </div>
+            <div class="form-group">
+              <label>Known Medical History</label>
+              <input type="text" id="p-medical-hx" placeholder="e.g. Hypertension, Diabetes" />
+            </div>
+            <div class="form-group">
+              <label>Previous Cancer Diagnosis (Specify type)</label>
+              <input type="text" id="p-cancer" placeholder="e.g. Breast cancer" />
+            </div>
+            <div class="form-group">
+              <label>Renal/Urological</label>
+              <input type="text" id="p-renal" placeholder="Renal/urological history" />
+            </div>
+          </div>
+
+          <!-- Page 4: Primary Assessment -->
+          <div class="patient-page" id="patient-page-4">
+            <h3 class="section-heading mb-16">Primary Assessment</h3>
+            <div class="form-group">
+              <label>Level of Consciousness</label>
+              <input type="text" id="p-consciousness" placeholder="e.g. Alert, Confused, Unconscious" />
+            </div>
+            <div class="form-group">
+              <label>Airway</label>
+              <input type="text" id="p-airway" placeholder="e.g. Patent, Obstructed" />
+            </div>
+            <div class="form-group">
+              <label>Breathing</label>
+              <input type="text" id="p-breathing" placeholder="e.g. Normal, Laboured" />
+            </div>
+            <div class="form-group">
+              <label>Circulation</label>
+              <input type="text" id="p-circulation" placeholder="e.g. Strong pulse, Weak pulse" />
+            </div>
+          </div>
+
+          <!-- Page 5: Treatment & Interventions -->
+          <div class="patient-page" id="patient-page-5">
+            <h3 class="section-heading mb-16">Treatment and Interventions</h3>
+            <div class="form-group">
+              <label>Airway Management</label>
+              <input type="text" id="p-airway-mgmt" placeholder="e.g. Jaw thrust, Suction" />
+            </div>
+            <div class="form-group">
+              <label>Additional Information (Airway)</label>
+              <textarea id="p-airway-add"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Breathing Assistance</label>
+              <input type="text" id="p-breathing-assist" placeholder="e.g. Bag-valve mask, O2 therapy" />
+            </div>
+            <div class="form-group">
+              <label>Additional Information (Breathing)</label>
+              <textarea id="p-breathing-add"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Cardiac Care</label>
+              <input type="text" id="p-cardiac" placeholder="e.g. CPR, Defibrillation" />
+            </div>
+          </div>
+
+          <!-- Page 6: Destination Hospital -->
+          <div class="patient-page" id="patient-page-6">
+            <h3 class="section-heading mb-16">Destination Hospital</h3>
+            <div class="form-group">
+              <label>Hospital Name</label>
+              <input type="text" id="p-hospital" placeholder="Hospital Name" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Transport Departure Time to Hospital</label>
+                <input type="time" id="p-depart-time" step="1" />
+              </div>
+              <div class="form-group">
+                <label>Transport Arrival Time at Hospital</label>
+                <input type="time" id="p-arrive-hosp-time" step="1" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Outcome at Destination Hospital</label>
+              <textarea id="p-outcome" placeholder="Describe outcome"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="p-hosp-date" />
+              </div>
+              <div class="form-group">
+                <label>Time</label>
+                <input type="time" id="p-hosp-time" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 7: Additional Information -->
+          <div class="patient-page" id="patient-page-7">
+            <h3 class="section-heading mb-16">Additional Information</h3>
+            <div class="form-group">
+              <label>Designation of Health Care Provider</label>
+              <input type="text" id="p-hcp-designation" placeholder="e.g. Doctor, Nurse" />
+            </div>
+            <div class="form-group">
+              <label>Name of Health Care Provider</label>
+              <input type="text" id="p-hcp-name" placeholder="Full Name" />
+            </div>
+            <div class="form-group">
+              <label>Law Enforcement Involved</label>
+              <input type="text" id="p-law" placeholder="e.g. LASPO, Police" />
+            </div>
+            <div class="form-group">
+              <label>Patient's Belonging(s)</label>
+              <textarea id="p-belongings" placeholder="List patient belongings"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Witnesses (Names and Contact Information)</label>
+              <textarea id="p-witnesses" placeholder="List witness names and contacts"></textarea>
+            </div>
+          </div>
+
+          <!-- Form navigation -->
+          <div class="flex justify-between align-center mt-24">
+            <button class="btn btn-secondary" id="btn-prev-page" onclick="patientFormNav(-1)" disabled>
+              <i class="bi bi-arrow-left"></i> Previous
+            </button>
+            <div class="flex gap-8">
+              <button class="btn btn-warning" onclick="savePatientDraft()">
+                <i class="bi bi-floppy"></i> Save Draft
+              </button>
+              <button class="btn btn-success hidden" id="btn-save-final" onclick="savePatientFinal()">
+                <i class="bi bi-check-lg"></i> Save
+              </button>
+            </div>
+            <button class="btn btn-primary" id="btn-next-page" onclick="patientFormNav(1)">
+              Next <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient List Tab -->
+      <div class="tab-pane" id="tab-patient-list">
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>S/N</th>
+                  <th>Situation on Arrival</th>
+                  <th>Full Name</th>
+                  <th>Home Address</th>
+                  <th>Gender</th>
+                  <th>LGA</th>
+                  <th>Submitted By</th>
+                  <th>View More</th>
+                </tr>
+              </thead>
+              <tbody id="patient-list-body">
+                <tr>
+                  <td>1</td>
+                  <td>Evacuation</td>
+                  <td>James Adebayo</td>
+                  <td>14 Eko Street, Ojota</td>
+                  <td>Male</td>
+                  <td>Kosofe</td>
+                  <td>jdoe</td>
+                  <td><a href="#" class="view-more-link" onclick="openViewMore('1'); return false;">View More</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View More Overlay -->
+  <div class="overlay-backdrop" id="view-more-overlay">
+    <div class="overlay-panel">
+      <button class="overlay-back-btn" onclick="closeViewMore()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+      <h2 class="page-title">Patient Information</h2>
+      <div id="view-more-content">
+        <!-- Sections generated by JS -->
+        <div class="view-more-section">
+          <h3 class="view-more-section-title">Patient Information</h3>
+          <div class="info-grid">
+            <div class="info-row"><span class="info-label">Full Name</span><span class="info-value">James Adebayo</span></div>
+            <div class="info-row"><span class="info-label">Age</span><span class="info-value">34</span></div>
+            <div class="info-row"><span class="info-label">Gender</span><span class="info-value">Male</span></div>
+            <div class="info-row"><span class="info-label">Home Address</span><span class="info-value">14 Eko Street, Ojota</span></div>
+            <div class="info-row"><span class="info-label">State of Origin</span><span class="info-value">Lagos</span></div>
+            <div class="info-row"><span class="info-label">Phone Number</span><span class="info-value">08056781234</span></div>
+            <div class="info-row"><span class="info-label">LGA</span><span class="info-value">Kosofe</span></div>
+            <div class="info-row"><span class="info-label">Occupation</span><span class="info-value">Teacher</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-outline mt-24" onclick="editPatientFromViewMore()">
+        <i class="bi bi-pencil"></i> Edit
+      </button>
+    </div>
+  </div>
+
+  <script src="../js/components.js"></script>
+  <script src="../js/cases.js"></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LASAMBUS — Report</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <div class="lasambus-layout">
+    <div id="header-placeholder"></div>
+    <div id="sidebar-placeholder"></div>
+
+    <main class="lasambus-main">
+      <h1 class="page-title">Report</h1>
+
+      <!-- Filters -->
+      <div class="card">
+        <h2 class="section-heading mb-16">Filters</h2>
+        <div class="flex" style="flex-wrap:wrap; gap:16px; align-items:flex-end;">
+          <div class="form-group" style="margin:0;">
+            <label>Year From</label>
+            <input type="number" id="filter-year-from" placeholder="e.g. 2023" min="2000" max="2099" style="width:130px;" />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Year To</label>
+            <input type="number" id="filter-year-to" placeholder="e.g. 2026" min="2000" max="2099" style="width:130px;" />
+          </div>
+          <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+            <label>LGA (hold Ctrl/Cmd to select multiple)</label>
+            <select id="filter-lga-report" multiple style="height:80px;">
+              <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+              <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+              <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+              <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+              <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+              <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+              <option>Somolu</option><option>Surulere</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="applyReportFilters()" style="align-self:flex-end;">
+            <i class="bi bi-funnel"></i> Apply
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary metrics -->
+      <div class="card">
+        <h2 class="section-heading mb-16">Summary</h2>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-label">Total Cases</div>
+            <div class="stat-value" id="r-total-cases">142</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Case Success Rate</div>
+            <div class="stat-value" id="r-success-rate">76%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Cases / Month</div>
+            <div class="stat-value" id="r-avg-monthly">11.8</div>
+          </div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-label">Total Cancelled</div>
+            <div class="stat-value" id="r-cancelled">18</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-value" id="r-total-patients">107</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Dispatch–Arrival Time</div>
+            <div class="stat-value" id="r-avg-transit">00:13:24</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 -->
+      <div class="card">
+        <div class="flex align-center gap-12 mb-16" style="flex-wrap:wrap;">
+          <h2 class="section-heading" style="margin:0;">Top 5</h2>
+          <select id="top5-selector" style="width:200px;">
+            <option value="incident_type">Incident Types</option>
+            <option value="lga">LGA/LCDA</option>
+            <option value="severity">Incident Severity</option>
+          </select>
+          <button class="btn btn-primary" onclick="renderTop5()">
+            <i class="bi bi-bar-chart-horizontal"></i> Apply
+          </button>
+        </div>
+        <div id="top5-chart">
+          <!-- Hardcoded for Phase 1 -->
+          <div class="bar-chart-row">
+            <span class="bar-label">Road Traffic Accident</span>
+            <div class="bar-track"><div class="bar-fill" style="width:80%;"></div></div>
+            <span class="bar-value">48</span>
+          </div>
+          <div class="bar-chart-row">
+            <span class="bar-label">Medical Emergencies</span>
+            <div class="bar-track"><div class="bar-fill" style="width:55%;"></div></div>
+            <span class="bar-value">33</span>
+          </div>
+          <div class="bar-chart-row">
+            <span class="bar-label">Trauma</span>
+            <div class="bar-track"><div class="bar-fill" style="width:38%;"></div></div>
+            <span class="bar-value">23</span>
+          </div>
+          <div class="bar-chart-row">
+            <span class="bar-label">Obstetric/Gynecological</span>
+            <div class="bar-track"><div class="bar-fill" style="width:25%;"></div></div>
+            <span class="bar-value">15</span>
+          </div>
+          <div class="bar-chart-row">
+            <span class="bar-label">Fire Incident</span>
+            <div class="bar-track"><div class="bar-fill" style="width:18%;"></div></div>
+            <span class="bar-value">11</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-12">
+        <a href="cases.html" class="btn btn-outline">
+          <i class="bi bi-folder2-open"></i> View All Cases
+        </a>
+        <a href="dashboard.html" class="btn btn-outline">
+          <i class="bi bi-speedometer2"></i> View Dashboard
+        </a>
+        <a href="export-report.html" class="btn btn-primary">
+          <i class="bi bi-download"></i> Export Table
+        </a>
+      </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+  </div>
+
+  <script src="../js/components.js"></script>
+  <script>
+    function applyReportFilters() {
+      // Backend will recalculate metrics based on filters
+      alert('Filters applied. (Backend will recalculate in Phase 4.)');
+    }
+
+    function renderTop5() {
+      // Backend will return top 5 data
+      alert('Top 5 updated. (Backend will populate in Phase 4.)');
+    }
+  </script>
+</body>
+</html>
