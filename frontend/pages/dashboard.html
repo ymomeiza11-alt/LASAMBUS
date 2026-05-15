@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LASAMBUS — Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <div class="lasambus-layout">
+    <div id="header-placeholder"></div>
+    <div id="sidebar-placeholder"></div>
+
+    <main class="lasambus-main">
+      <h1 class="page-title">Dashboard</h1>
+
+      <!-- Quick summaries -->
+      <div class="card">
+        <h2 class="section-heading">This Month</h2>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-label">Cases This Month</div>
+            <div class="stat-value" id="stat-cases-month">24</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Cases Completed</div>
+            <div class="stat-value" id="stat-completed">18</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Call Success Rate</div>
+            <div class="stat-value" id="stat-success-rate">75%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent cases table -->
+      <div class="card">
+        <h2 class="section-heading mb-16">Recent Cases</h2>
+        <div class="table-wrapper">
+          <table id="dashboard-table">
+            <thead>
+              <tr>
+                <th>S/N</th>
+                <th>Date</th>
+                <th>Incident Description</th>
+                <th>Incident Location</th>
+                <th>Response Time</th>
+                <th>Situation on Arrival</th>
+                <th>Transit Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-table-body">
+              <!-- Hardcoded rows for Phase 1 -->
+              <tr>
+                <td>1</td>
+                <td>12/05/2026</td>
+                <td>Road Traffic Accident on Lagos-Ibadan Expressway</td>
+                <td>Ojota, Lagos</td>
+                <td>00:08:32</td>
+                <td>Evacuation</td>
+                <td>00:14:10</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>11/05/2026</td>
+                <td>Cardiac arrest reported at residential building</td>
+                <td>Lekki Phase 1</td>
+                <td>00:06:15</td>
+                <td>Live Victim/Treat and Discharge</td>
+                <td>00:11:44</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>11/05/2026</td>
+                <td>Fire incident at market</td>
+                <td>Alaba International Market, Ojo</td>
+                <td>00:10:00</td>
+                <td>Nothing Sighted</td>
+                <td>00:18:30</td>
+                <td><span class="status-badge status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>10/05/2026</td>
+                <td>Obstetric emergency — pregnant woman in distress</td>
+                <td>Mushin</td>
+                <td>00:07:20</td>
+                <td>Evacuation</td>
+                <td>00:12:05</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>10/05/2026</td>
+                <td>Trauma — fall from height at construction site</td>
+                <td>Victoria Island</td>
+                <td>00:09:45</td>
+                <td>Evacuation</td>
+                <td>00:16:20</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>09/05/2026</td>
+                <td>Road Traffic Accident — multiple vehicles</td>
+                <td>Mile 2, Amuwo-Odofin</td>
+                <td>00:05:50</td>
+                <td>Evacuation</td>
+                <td>00:09:30</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>09/05/2026</td>
+                <td>Seizure episode reported</td>
+                <td>Surulere</td>
+                <td>00:07:00</td>
+                <td>Live Victim/Treat and Discharge</td>
+                <td>00:13:10</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>08/05/2026</td>
+                <td>Drowning incident at beach</td>
+                <td>Bar Beach, Eti-Osa</td>
+                <td>00:11:30</td>
+                <td>Corpse</td>
+                <td>00:19:00</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>08/05/2026</td>
+                <td>Assault — stabbing reported</td>
+                <td>Agege</td>
+                <td>00:08:10</td>
+                <td>Evacuation</td>
+                <td>00:15:00</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>07/05/2026</td>
+                <td>Diabetic emergency — unresponsive patient</td>
+                <td>Ikeja GRA</td>
+                <td>00:06:40</td>
+                <td>Evacuation</td>
+                <td>00:10:55</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>07/05/2026</td>
+                <td>Road Traffic Accident — motorcycle collision</td>
+                <td>Ikorodu Road</td>
+                <td>00:09:00</td>
+                <td>Live Victim/Treat and Discharge</td>
+                <td>00:14:30</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>06/05/2026</td>
+                <td>Elderly collapse at home</td>
+                <td>Badagry</td>
+                <td>00:15:20</td>
+                <td>Evacuation</td>
+                <td>00:22:10</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>06/05/2026</td>
+                <td>Gas explosion — building partially destroyed</td>
+                <td>Apapa</td>
+                <td>00:07:50</td>
+                <td>Evacuation</td>
+                <td>00:13:45</td>
+                <td><span class="status-badge status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span></td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>05/05/2026</td>
+                <td>Child trauma — road accident near school</td>
+                <td>Kosofe</td>
+                <td>00:06:55</td>
+                <td>Evacuation</td>
+                <td>00:11:20</td>
+                <td><span class="status-badge status-complete"><i class="bi bi-check-circle-fill"></i> Completed</span></td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>05/05/2026</td>
+                <td>Stroke symptoms reported by family</td>
+                <td>Somolu</td>
+                <td>00:08:00</td>
+                <td>Evacuation</td>
+                <td>00:12:40</td>
+                <td><span class="status-badge status-active"><i class="bi bi-arrow-repeat"></i> Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex gap-12 mt-24">
+          <a href="cases.html" class="btn btn-primary">
+            <i class="bi bi-folder2-open"></i> All Cases
+          </a>
+          <a href="report.html" class="btn btn-outline">
+            <i class="bi bi-bar-chart-line"></i> Full Report
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+  </div>
+
+  <script src="../js/components.js"></script>
+</body>
+</html>
