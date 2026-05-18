@@ -1,4 +1,17 @@
-function injectComponents() {
+// Exposed globally so other page scripts can read the logged-in user
+window.__currentUser = null;
+
+async function injectComponents() {
+  // Auth check — redirect to login if session is invalid
+  try {
+    const res = await fetch('/api/auth/me');
+    if (!res.ok) { window.location.href = '/pages/login.html'; return; }
+    window.__currentUser = await res.json();
+  } catch {
+    window.location.href = '/pages/login.html';
+    return;
+  }
+
   const header = `
     <header class="lasambus-header">
       <div class="header-right">
@@ -62,22 +75,25 @@ function injectComponents() {
       <p>&copy; Copyright Lagos State Ambulance Service (LASAMBUS) Dashboard. All Rights Reserved.</p>
     </footer>`;
 
-  const headerEl = document.getElementById('header-placeholder');
+  const headerEl  = document.getElementById('header-placeholder');
   const sidebarEl = document.getElementById('sidebar-placeholder');
-  const footerEl = document.getElementById('footer-placeholder');
+  const footerEl  = document.getElementById('footer-placeholder');
 
-  if (headerEl) headerEl.innerHTML = header;
+  if (headerEl)  headerEl.innerHTML  = header;
   if (sidebarEl) sidebarEl.innerHTML = sidebar;
-  if (footerEl) footerEl.innerHTML = footer;
+  if (footerEl)  footerEl.innerHTML  = footer;
 
   startClock();
   initSidebar();
   setActiveSidebarLink();
+
+  // Fire a custom event so page scripts know components are ready
+  document.dispatchEvent(new CustomEvent('componentsReady', { detail: window.__currentUser }));
 }
 
 function startClock() {
   function update() {
-    const now = new Date();
+    const now    = new Date();
     const dateEl = document.getElementById('sidebar-date');
     const timeEl = document.getElementById('sidebar-time');
     if (dateEl) dateEl.textContent = now.toLocaleDateString('en-GB', {
@@ -90,9 +106,9 @@ function startClock() {
 }
 
 function initSidebar() {
-  const toggle = document.getElementById('sidebarToggle');
+  const toggle  = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
-  const layout = document.querySelector('.lasambus-layout');
+  const layout  = document.querySelector('.lasambus-layout');
   if (!toggle || !sidebar) return;
 
   const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -116,8 +132,8 @@ function setActiveSidebarLink() {
 }
 
 async function handleLogout() {
-  await fetch('/api/auth/logout').catch(() => {});
-  window.location.href = '../pages/login.html';
+  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  window.location.href = '/pages/login.html';
 }
 
 document.addEventListener('DOMContentLoaded', injectComponents);

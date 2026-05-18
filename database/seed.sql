@@ -14,7 +14,7 @@ VALUES
   (
     'admin',
     'admin@lasambus.gov.ng',
-    '$2b$12$KIB/RQjUvpkCJAetKExI6.sQDPMDq4zEYy01lNH7aS8LKn5wQMwCi',
+    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
     'Mr',
     'Admin',
     'User',

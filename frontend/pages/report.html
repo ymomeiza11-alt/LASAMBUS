@@ -128,108 +128,27 @@
       </div>
       <div class="filter-modal-body">
         <div class="filter-section">
-          <span class="filter-section-label">Year Range</span>
+          <span class="filter-section-label">Date Range</span>
           <div class="form-row">
             <div class="form-group" style="margin:0;">
               <label>From</label>
-              <input type="number" id="filter-year-from" placeholder="e.g. 2023" min="2000" max="2099" />
+              <input type="date" id="rf-start-date" />
             </div>
             <div class="form-group" style="margin:0;">
               <label>To</label>
-              <input type="number" id="filter-year-to" placeholder="e.g. 2026" min="2000" max="2099" />
+              <input type="date" id="rf-end-date" />
             </div>
-          </div>
-        </div>
-        <div class="filter-section">
-          <span class="filter-section-label">LGA/LCDA</span>
-          <div class="filter-checkbox-grid">
-            <label class="filter-checkbox-item"><input type="checkbox" value="Agege" /> Agege</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ajeromi-Ifelodun" /> Ajeromi-Ifelodun</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Alimosho" /> Alimosho</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Amuwo-Odofin" /> Amuwo-Odofin</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Apapa" /> Apapa</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Badagry" /> Badagry</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Epe" /> Epe</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Eti-Osa" /> Eti-Osa</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ibeju-Lekki" /> Ibeju-Lekki</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ifako-Ijaiye" /> Ifako-Ijaiye</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ikeja" /> Ikeja</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ikorodu" /> Ikorodu</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Kosofe" /> Kosofe</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Lagos Island" /> Lagos Island</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Lagos Mainland" /> Lagos Mainland</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Mushin" /> Mushin</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Ojo" /> Ojo</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Oshodi-Isolo" /> Oshodi-Isolo</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Somolu" /> Somolu</label>
-            <label class="filter-checkbox-item"><input type="checkbox" value="Surulere" /> Surulere</label>
           </div>
         </div>
       </div>
       <div class="filter-modal-footer">
         <button class="btn btn-secondary" onclick="closeReportFilterModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="applyReportFilters()">Apply</button>
+        <button class="btn btn-primary" onclick="applyReportFilter()">Apply</button>
       </div>
     </div>
   </div>
 
   <script src="../js/components.js"></script>
-  <script>
-    let reportFilters = { yearFrom: null, yearTo: null, lgas: [] };
-
-    function openReportFilterModal() {
-      document.getElementById('report-filter-modal').classList.add('open');
-    }
-    function closeReportFilterModal() {
-      document.getElementById('report-filter-modal').classList.remove('open');
-    }
-
-    function applyReportFilters() {
-      reportFilters.yearFrom = document.getElementById('filter-year-from').value || null;
-      reportFilters.yearTo   = document.getElementById('filter-year-to').value || null;
-      reportFilters.lgas = Array.from(
-        document.querySelectorAll('#report-filter-modal input[type="checkbox"]:checked')
-      ).map(cb => cb.value);
-      renderReportActiveFilters();
-      closeReportFilterModal();
-    }
-
-    function renderReportActiveFilters() {
-      const container = document.getElementById('report-active-filters');
-      const { yearFrom, yearTo, lgas } = reportFilters;
-      if (!yearFrom && !yearTo && lgas.length === 0) { container.classList.add('hidden'); return; }
-      container.classList.remove('hidden');
-      let html = '<span class="active-filters-label">Active Filters:</span>';
-      if (yearFrom || yearTo) {
-        const label = `${yearFrom || '—'} to ${yearTo || '—'}`;
-        html += `<span class="filter-tag">${label} <button class="filter-tag-remove" onclick="removeReportFilter('year')">×</button></span>`;
-      }
-      lgas.forEach(lga => {
-        html += `<span class="filter-tag">${lga} <button class="filter-tag-remove" onclick="removeReportFilter('lga','${lga}')">×</button></span>`;
-      });
-      container.innerHTML = html;
-    }
-
-    function removeReportFilter(type, value) {
-      if (type === 'year') {
-        reportFilters.yearFrom = null; reportFilters.yearTo = null;
-        document.getElementById('filter-year-from').value = '';
-        document.getElementById('filter-year-to').value = '';
-      } else {
-        reportFilters.lgas = reportFilters.lgas.filter(l => l !== value);
-        const cb = document.querySelector(`#report-filter-modal input[value="${value}"]`);
-        if (cb) cb.checked = false;
-      }
-      renderReportActiveFilters();
-    }
-
-    function renderTop5() {
-      alert('Top 5 updated. (Backend will populate in Phase 4.)');
-    }
-
-    document.getElementById('report-filter-modal').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeReportFilterModal();
-    });
-  </script>
+  <script src="../js/report.js"></script>
 </body>
 </html>
