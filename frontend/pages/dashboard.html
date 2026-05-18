@@ -16,21 +16,38 @@
       <h1 class="page-title">Dashboard</h1>
 
       <!-- Quick summaries -->
-      <div class="card">
-        <h2 class="section-heading">This Month</h2>
-        <div class="stat-cards">
-          <div class="stat-card">
-            <div class="stat-label">Cases This Month</div>
-            <div class="stat-value" id="stat-cases-month">24</div>
+      <div class="dash-summary-strip">
+        <div class="dash-metric-card" style="--accent: var(--color-dark-blue);">
+          <div class="dash-metric-icon" style="background: rgba(0,53,128,0.1); color: var(--color-dark-blue);">
+            <i class="bi bi-folder2-open"></i>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Cases Completed</div>
-            <div class="stat-value" id="stat-completed">18</div>
+          <div class="dash-metric-body">
+            <div class="dash-metric-value" id="stat-cases-month">24</div>
+            <div class="dash-metric-label">Cases This Month</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Call Success Rate</div>
-            <div class="stat-value" id="stat-success-rate">75%</div>
+          <div class="dash-metric-accent" style="background: var(--color-dark-blue);"></div>
+        </div>
+
+        <div class="dash-metric-card" style="--accent: var(--color-green);">
+          <div class="dash-metric-icon" style="background: rgba(40,167,69,0.1); color: var(--color-green);">
+            <i class="bi bi-check2-circle"></i>
           </div>
+          <div class="dash-metric-body">
+            <div class="dash-metric-value" id="stat-completed">18</div>
+            <div class="dash-metric-label">Cases Completed</div>
+          </div>
+          <div class="dash-metric-accent" style="background: var(--color-green);"></div>
+        </div>
+
+        <div class="dash-metric-card" style="--accent: var(--color-yellow);">
+          <div class="dash-metric-icon" style="background: rgba(255,193,7,0.15); color: #b38600;">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="dash-metric-body">
+            <div class="dash-metric-value" id="stat-success-rate">75%</div>
+            <div class="dash-metric-label">Call Success Rate</div>
+          </div>
+          <div class="dash-metric-accent" style="background: var(--color-yellow);"></div>
         </div>
       </div>
 

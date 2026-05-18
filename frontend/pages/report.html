@@ -27,35 +27,36 @@
       </div>
 
       <!-- Summary metrics -->
-      <div class="card">
-        <h2 class="section-heading mb-16">Summary</h2>
-        <div class="stat-cards">
-          <div class="stat-card">
-            <div class="stat-label">Total Cases</div>
-            <div class="stat-value" id="r-total-cases">142</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Case Success Rate</div>
-            <div class="stat-value" id="r-success-rate">76%</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Avg Cases / Month</div>
-            <div class="stat-value" id="r-avg-monthly">11.8</div>
-          </div>
+      <div class="report-metrics-grid">
+        <div class="report-metric-card rm-blue">
+          <i class="bi bi-folder2-open rm-icon"></i>
+          <div class="rm-value" id="r-total-cases">142</div>
+          <div class="rm-label">Total Cases</div>
         </div>
-        <div class="stat-cards">
-          <div class="stat-card">
-            <div class="stat-label">Total Cancelled</div>
-            <div class="stat-value" id="r-cancelled">18</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Patients</div>
-            <div class="stat-value" id="r-total-patients">107</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Avg Dispatch–Arrival Time</div>
-            <div class="stat-value" id="r-avg-transit">00:13:24</div>
-          </div>
+        <div class="report-metric-card rm-green">
+          <i class="bi bi-graph-up-arrow rm-icon"></i>
+          <div class="rm-value" id="r-success-rate">76%</div>
+          <div class="rm-label">Case Success Rate</div>
+        </div>
+        <div class="report-metric-card rm-lblue">
+          <i class="bi bi-calendar3 rm-icon"></i>
+          <div class="rm-value" id="r-avg-monthly">11.8</div>
+          <div class="rm-label">Avg Cases / Month</div>
+        </div>
+        <div class="report-metric-card rm-red">
+          <i class="bi bi-x-circle rm-icon"></i>
+          <div class="rm-value" id="r-cancelled">18</div>
+          <div class="rm-label">Total Cancelled</div>
+        </div>
+        <div class="report-metric-card rm-yellow">
+          <i class="bi bi-people rm-icon"></i>
+          <div class="rm-value" id="r-total-patients">107</div>
+          <div class="rm-label">Total Patients</div>
+        </div>
+        <div class="report-metric-card rm-dark">
+          <i class="bi bi-stopwatch rm-icon"></i>
+          <div class="rm-value" id="r-avg-transit">13:24</div>
+          <div class="rm-label">Avg Dispatch–Arrival Time</div>
         </div>
       </div>
 
