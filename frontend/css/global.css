@@ -690,7 +690,7 @@ input[type="checkbox"] {
 
 .step-label { font-size: 0.7rem; margin-top: 5px; color: #666; text-align: center; }
 
-/* ── Summary stat cards ── */
+/* ── Summary stat cards (legacy, kept for compatibility) ── */
 .stat-cards { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
 
 .stat-card {
@@ -705,6 +705,132 @@ input[type="checkbox"] {
 
 .stat-card .stat-label { font-size: 0.78rem; color: #666; font-weight: 600; margin-bottom: 6px; }
 .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--color-dark-blue); }
+
+/* ── Dashboard metric strip ── */
+.dash-summary-strip {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dash-metric-card {
+  flex: 1;
+  min-width: 200px;
+  background: var(--color-white);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-metric-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 10px 0 0 10px;
+}
+
+.dash-metric-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.dash-metric-body { flex: 1; }
+
+.dash-metric-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.dash-metric-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Report metrics grid ── */
+.report-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .report-metrics-grid { grid-template-columns: 1fr; }
+}
+
+.report-metric-card {
+  border-radius: 10px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-metric-card::after {
+  content: '';
+  position: absolute;
+  right: -16px;
+  bottom: -16px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  opacity: 0.12;
+  background: currentColor;
+}
+
+.rm-icon {
+  font-size: 1.3rem;
+  opacity: 0.85;
+}
+
+.rm-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rm-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+/* Report card colour themes */
+.rm-blue  { background: #e8f0fe; color: #1a3c8f; }
+.rm-green { background: #e6f4ea; color: #1e6b3a; }
+.rm-lblue { background: #e0f3ff; color: #0066a4; }
+.rm-red   { background: #fdecea; color: #9c1f1f; }
+.rm-yellow{ background: #fff8e1; color: #7a5800; }
+.rm-dark  { background: #eef0f5; color: #2c3a52; }
 
 /* ── Horizontal bar chart ── */
 .bar-chart-row {
