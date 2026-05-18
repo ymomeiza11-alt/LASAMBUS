@@ -72,6 +72,23 @@ function val(raw) {
   return s === '' ? null : s;
 }
 
+// Normalise gender: accept Male/Female/male/female, anything else → null
+function normaliseGender(raw) {
+  if (!raw) return null;
+  const s = raw.trim().toLowerCase();
+  if (s === 'male') return 'Male';
+  if (s === 'female') return 'Female';
+  return null;
+}
+
+// Normalise age: must be a non-negative integer ≤ 120, else null
+function normaliseAge(raw) {
+  if (!raw) return null;
+  const n = parseFloat(raw);
+  if (isNaN(n) || n < 0 || n > 120) return null;
+  return Math.round(n);
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function run() {
@@ -114,10 +131,12 @@ async function run() {
   let caseCount    = 0;
   let patientCount = 0;
   let skipped      = 0;
+  const insertedPatients = new Set(); // prevent duplicate patient rows from duplicate case IDs in CSV
 
   for (const row of records) {
     const caseId = parseInt(row['Case ID']);
-    if (!caseId || isNaN(caseId)) { skipped++; continue; }
+    // Skip missing, non-numeric, or corrupted IDs (valid old IDs are ≤ 33146)
+    if (!caseId || isNaN(caseId) || caseId > 33146) { skipped++; continue; }
 
     const dateOfIncident   = parseDate(val(row['Date of Incident']));
     const timeOfIncident   = val(row['Time of Incident']);
@@ -159,20 +178,21 @@ async function run() {
 
       // Insert patient record if any patient fields are populated
       const patientName   = val(row['Patient Full Name']);
-      const patientAge    = val(row['Patient Age']);
-      const patientGender = val(row['Patient Gender']);
+      const patientAge    = normaliseAge(val(row['Patient Age']));
+      const patientGender = normaliseGender(val(row['Patient Gender']));
       const patientLGA    = val(row['Patient LGA']);
       const patientState  = val(row['Patient State of Origin']);
 
-      if (patientName || patientAge) {
+      if ((patientName || patientAge !== null) && !insertedPatients.has(caseId)) {
+        insertedPatients.add(caseId);
         await conn.execute(
-          `INSERT INTO patient_info
+          `INSERT IGNORE INTO patient_info
              (case_id, full_name, age, gender, lga, state_of_origin, situation_on_arrival)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             caseId,
             patientName,
-            patientAge ? parseInt(patientAge) : null,
+            patientAge,
             patientGender,
             patientLGA,
             patientState,
