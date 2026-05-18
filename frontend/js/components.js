@@ -4,10 +4,6 @@ function injectComponents() {
       <div class="header-left">
         <img src="../assets/logo-placeholder.png" alt="LASAMBUS Logo" class="header-logo" onclick="location.reload()" />
       </div>
-      <div class="header-center">
-        <span id="header-date"></span>
-        <span id="header-time"></span>
-      </div>
       <div class="header-right">
         <a href="profile.html" class="header-icon-btn" title="Profile">
           <i class="bi bi-person-circle"></i>
@@ -55,6 +51,10 @@ function injectComponents() {
           </a>
         </li>
       </ul>
+      <div class="sidebar-datetime">
+        <span id="sidebar-date"></span>
+        <span id="sidebar-time"></span>
+      </div>
     </nav>`;
 
   const footer = `
@@ -78,9 +78,11 @@ function injectComponents() {
 function startClock() {
   function update() {
     const now = new Date();
-    const dateEl = document.getElementById('header-date');
-    const timeEl = document.getElementById('header-time');
-    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+    const dateEl = document.getElementById('sidebar-date');
+    const timeEl = document.getElementById('sidebar-time');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-GB', {
+      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+    });
     if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-GB');
   }
   update();
@@ -109,13 +111,12 @@ function initSidebar() {
 function setActiveSidebarLink() {
   const currentPage = window.location.pathname.split('/').pop();
   document.querySelectorAll('.sidebar-link').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === currentPage) link.classList.add('active');
+    if (link.getAttribute('href') === currentPage) link.classList.add('active');
   });
 }
 
 async function handleLogout() {
-  await fetch('/api/auth/logout');
+  await fetch('/api/auth/logout').catch(() => {});
   window.location.href = '../pages/login.html';
 }
 
