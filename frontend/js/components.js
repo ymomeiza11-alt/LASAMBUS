@@ -27,7 +27,7 @@ async function injectComponents() {
   const sidebar = `
     <nav class="lasambus-sidebar" id="sidebar">
       <div class="sidebar-logo-wrap">
-        <img src="../assets/logo-placeholder.png" alt="LASAMBUS Logo" class="sidebar-logo" />
+        <img src="../assets/LASAMBUS Logo.png" alt="LASAMBUS Logo" class="sidebar-logo" />
       </div>
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
         <i class="bi bi-list"></i>

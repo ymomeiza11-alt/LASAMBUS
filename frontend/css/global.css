@@ -129,7 +129,8 @@ html, body { height: 100%; }
 }
 
 .sidebar-logo {
-  height: 40px;
+  height: 64px;
+  max-width: 100%;
   object-fit: contain;
   transition: opacity 0.2s;
 }
@@ -198,7 +199,14 @@ html, body { height: 100%; }
 
 .lasambus-sidebar.collapsed .sidebar-label { display: none; }
 
-.lasambus-sidebar.collapsed .sidebar-logo-wrap { padding: 18px 0 14px; }
+.lasambus-sidebar.collapsed .sidebar-logo-wrap { padding: 12px 0; }
+.lasambus-sidebar.collapsed .sidebar-logo { height: 36px; }
+
+.lasambus-sidebar.collapsed .sidebar-toggle {
+  align-self: stretch;
+  text-align: center;
+  padding: 8px 0;
+}
 
 .lasambus-sidebar.collapsed .sidebar-link {
   justify-content: center;
@@ -954,16 +962,24 @@ input[type="checkbox"] {
 ══════════════════════════════════════════════ */
 .report-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
 
+/* First 2 cards: half-width each; last 3: one-third each */
+.report-metrics-grid .report-metric-card:nth-child(-n+2) { grid-column: span 3; }
+.report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 2; }
+
 @media (max-width: 900px) {
   .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .report-metrics-grid .report-metric-card:nth-child(-n+2),
+  .report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 1; }
 }
 @media (max-width: 560px) {
   .report-metrics-grid { grid-template-columns: 1fr; }
+  .report-metrics-grid .report-metric-card:nth-child(-n+2),
+  .report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 1; }
 }
 
 .report-metric-card {

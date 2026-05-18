@@ -14,12 +14,11 @@ async function loadReport() {
 
   try {
     const data = await apiFetch(`/api/report?${params}`);
-    document.getElementById('r-total-cases').textContent  = data.totalCases;
-    document.getElementById('r-success-rate').textContent = data.successRate + '%';
-    document.getElementById('r-avg-monthly').textContent  = data.avgMonthly;
-    document.getElementById('r-cancelled').textContent    = data.cancelled;
+    document.getElementById('r-total-cases').textContent    = data.totalCases;
+    document.getElementById('r-success-rate').textContent   = data.successRate + '%';
+    document.getElementById('r-avg-monthly').textContent    = data.avgMonthly;
+    document.getElementById('r-cancelled').textContent      = data.cancelled;
     document.getElementById('r-total-patients').textContent = data.totalPatients;
-    document.getElementById('r-avg-transit').textContent  = data.avgTransit;
   } catch (err) {
     console.error('Report load error:', err);
   }
