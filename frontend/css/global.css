@@ -151,7 +151,6 @@ html, body { height: 100%; }
 .sidebar-datetime {
   margin-top: auto;
   padding: 14px 16px;
-  border-top: 1px solid rgba(255,255,255,0.15);
 }
 
 #sidebar-date {
@@ -324,20 +323,12 @@ select {
   border-radius: 12px;
 }
 
-.status-active   { color: #0056b3; background: #cce5ff; }
-.status-complete { color: #155724; background: #d4edda; }
-.status-cancelled{ color: #721c24; background: #f8d7da; }
-
-/* ── Status circles (ambulance / paramedic) ── */
-.status-dot {
-  display: inline-block;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  margin-right: 5px;
-}
-.dot-available  { background: var(--color-green); }
-.dot-assigned   { background: #0056b3; }
-.dot-unavailable{ background: var(--color-red); }
+.status-active      { color: #0056b3; background: #cce5ff; }
+.status-complete    { color: #155724; background: #d4edda; }
+.status-cancelled   { color: #721c24; background: #f8d7da; }
+.status-available   { color: #155724; background: #d4edda; }
+.status-assigned    { color: #0056b3; background: #cce5ff; }
+.status-unavailable { color: #721c24; background: #f8d7da; }
 
 /* ── Search bar row ── */
 .search-row {
