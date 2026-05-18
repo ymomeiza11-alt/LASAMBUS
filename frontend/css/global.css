@@ -62,7 +62,7 @@ html, body { height: 100%; }
   grid-template-areas:
     "sidebar header"
     "sidebar main"
-    "sidebar footer";
+    "footer footer";
   grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) 1fr var(--footer-height);
   height: 100vh;
@@ -214,6 +214,7 @@ html, body { height: 100%; }
 .sidebar-datetime {
   margin-top: auto;
   padding: 14px 16px;
+  margin-bottom: 20px;
 }
 
 #sidebar-date {
@@ -1170,7 +1171,7 @@ input[type="checkbox"] {
   .lasambus-layout {
     grid-template-columns: 0 1fr;
     grid-template-areas:
-      "sidebar header"
+      "header header"
       "main main"
       "footer footer";
   }
