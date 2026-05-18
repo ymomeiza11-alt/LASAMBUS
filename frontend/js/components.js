@@ -1,9 +1,6 @@
 function injectComponents() {
   const header = `
     <header class="lasambus-header">
-      <div class="header-left">
-        <img src="../assets/logo-placeholder.png" alt="LASAMBUS Logo" class="header-logo" onclick="location.reload()" />
-      </div>
       <div class="header-right">
         <a href="profile.html" class="header-icon-btn" title="Profile">
           <i class="bi bi-person-circle"></i>
@@ -16,6 +13,9 @@ function injectComponents() {
 
   const sidebar = `
     <nav class="lasambus-sidebar" id="sidebar">
+      <div class="sidebar-logo-wrap">
+        <img src="../assets/logo-placeholder.png" alt="LASAMBUS Logo" class="sidebar-logo" />
+      </div>
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
         <i class="bi bi-list"></i>
       </button>
