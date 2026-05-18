@@ -1,31 +1,78 @@
-let ambMode = 'add';
+let ambulances    = [];
+let currentAmbId  = null;
 
-function openAmbOverlay(mode, code) {
-  ambMode = mode;
-  const overlay = document.getElementById('amb-overlay');
-  const title = document.getElementById('amb-overlay-title');
-  const deleteBtn = document.getElementById('btn-delete-amb');
-  const statusGroup = document.getElementById('amb-status-group');
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
 
-  clearAmbForm();
+function statusBadge(status) {
+  const map = { Available: 'status-available', Assigned: 'status-assigned', Unavailable: 'status-unavailable' };
+  return `<span class="status-badge ${map[status] || ''}">${status}</span>`;
+}
 
-  if (mode === 'edit') {
-    title.textContent = 'Edit Ambulance';
-    deleteBtn.classList.remove('hidden');
-    statusGroup.classList.remove('hidden');
-    // Phase 1: placeholder data
-    document.getElementById('amb-vehicle-name').value = 'Toyota HiAce';
-    document.getElementById('amb-code-input').value = code;
-    document.getElementById('amb-status').value = 'Assigned';
-    toggleAmbUnavailableReason('Assigned');
-  } else {
-    title.textContent = 'Add Ambulance';
-    deleteBtn.classList.add('hidden');
-    statusGroup.classList.add('hidden');
-    document.getElementById('amb-unavailable-reason-group').classList.add('hidden');
+// ── Load & render ─────────────────────────────────────
+async function loadAmbulances() {
+  try {
+    ambulances = await apiFetch('/api/ambulances');
+    renderTable(ambulances);
+  } catch (err) {
+    console.error('Ambulances load error:', err);
   }
+}
 
-  overlay.classList.add('open');
+function renderTable(list) {
+  const tbody = document.getElementById('ambulance-table-body');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#888;">No ambulances found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td><a href="#" class="amb-code-link" onclick="openEditOverlay(${a.ambulance_id}); return false;">${a.ambulance_code}</a></td>
+      <td>${a.vehicle_name}</td>
+      <td>${statusBadge(a.status)}</td>
+    </tr>`).join('');
+}
+
+// ── Search (client-side filter) ───────────────────────
+function searchAmbulances() {
+  const q = document.getElementById('search-amb-code').value.trim().toLowerCase();
+  renderTable(q ? ambulances.filter(a => a.ambulance_code.toLowerCase().includes(q)) : ambulances);
+}
+
+document.getElementById('search-amb-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchAmbulances();
+});
+
+// ── Overlay helpers ───────────────────────────────────
+function openAddOverlay() {
+  currentAmbId = null;
+  clearAmbForm();
+  document.getElementById('amb-overlay-title').textContent = 'Add Ambulance';
+  document.getElementById('btn-delete-amb').classList.add('hidden');
+  document.getElementById('amb-status-group').classList.add('hidden');
+  document.getElementById('amb-unavailable-reason-group').classList.add('hidden');
+  document.getElementById('amb-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openEditOverlay(id) {
+  const amb = ambulances.find(a => a.ambulance_id === id);
+  if (!amb) return;
+  currentAmbId = id;
+  clearAmbForm();
+  document.getElementById('amb-overlay-title').textContent = 'Edit Ambulance';
+  document.getElementById('btn-delete-amb').classList.remove('hidden');
+  document.getElementById('amb-status-group').classList.remove('hidden');
+  document.getElementById('amb-vehicle-name').value  = amb.vehicle_name;
+  document.getElementById('amb-code-input').value    = amb.ambulance_code;
+  document.getElementById('amb-status').value        = amb.status;
+  document.getElementById('amb-unavailable-reason').value = amb.unavailable_reason || '';
+  toggleAmbUnavailableReason(amb.status);
+  document.getElementById('amb-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
@@ -35,67 +82,89 @@ function closeAmbOverlay() {
 }
 
 function clearAmbForm() {
-  document.getElementById('amb-vehicle-name').value = '';
-  document.getElementById('amb-code-input').value = '';
-  document.getElementById('amb-unavailable-reason').value = '';
+  ['amb-vehicle-name', 'amb-code-input', 'amb-unavailable-reason'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   ['err-amb-name', 'err-amb-code'].forEach(id => document.getElementById(id).classList.remove('visible'));
   ['amb-vehicle-name', 'amb-code-input'].forEach(id => document.getElementById(id).classList.remove('error'));
 }
 
 function toggleAmbUnavailableReason(status) {
-  const group = document.getElementById('amb-unavailable-reason-group');
-  group.classList.toggle('hidden', status !== 'Unavailable');
+  document.getElementById('amb-unavailable-reason-group').classList.toggle('hidden', status !== 'Unavailable');
 }
-
-document.getElementById('ambForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  let valid = true;
-
-  const name = document.getElementById('amb-vehicle-name');
-  const code = document.getElementById('amb-code-input');
-  [{ el: name, err: 'err-amb-name' }, { el: code, err: 'err-amb-code' }].forEach(({ el, err }) => {
-    el.classList.remove('error');
-    document.getElementById(err).classList.remove('visible');
-    if (!el.value.trim()) { el.classList.add('error'); document.getElementById(err).classList.add('visible'); valid = false; }
-  });
-
-  if (ambMode === 'edit') {
-    const status = document.getElementById('amb-status').value;
-    if (status === 'Unavailable' && !document.getElementById('amb-unavailable-reason').value.trim()) {
-      alert('Please provide a reason for unavailability.');
-      valid = false;
-    }
-  }
-
-  if (!valid) return;
-  closeAmbOverlay();
-});
-
-function openDeleteConfirm() {
-  document.getElementById('delete-popup').classList.add('open');
-}
-
-function closeDeleteConfirm() {
-  document.getElementById('delete-popup').classList.remove('open');
-}
-
-function confirmDelete() {
-  closeDeleteConfirm();
-  closeAmbOverlay();
-}
-
-function searchAmbulances() {
-  const query = document.getElementById('search-amb-code').value.trim().toLowerCase();
-  document.querySelectorAll('#ambulance-table-body tr').forEach(row => {
-    const code = row.cells[0]?.textContent.toLowerCase() || '';
-    row.style.display = !query || code.includes(query) ? '' : 'none';
-  });
-}
-
-document.getElementById('search-amb-code').addEventListener('keydown', e => {
-  if (e.key === 'Enter') searchAmbulances();
-});
 
 document.getElementById('amb-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeAmbOverlay();
 });
+
+// ── Submit (add or edit) ──────────────────────────────
+document.getElementById('ambForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const nameEl = document.getElementById('amb-vehicle-name');
+  const codeEl = document.getElementById('amb-code-input');
+  let valid = true;
+
+  [{ el: nameEl, err: 'err-amb-name' }, { el: codeEl, err: 'err-amb-code' }].forEach(({ el, err }) => {
+    el.classList.remove('error');
+    document.getElementById(err).classList.remove('visible');
+    if (!el.value.trim()) {
+      el.classList.add('error');
+      document.getElementById(err).classList.add('visible');
+      valid = false;
+    }
+  });
+
+  const status = document.getElementById('amb-status').value;
+  const reason = document.getElementById('amb-unavailable-reason').value.trim();
+  if (currentAmbId && status === 'Unavailable' && !reason) {
+    alert('Please provide a reason for unavailability.');
+    return;
+  }
+
+  if (!valid) return;
+
+  const submitBtn = this.querySelector('[type="submit"]');
+  submitBtn.disabled = true;
+
+  try {
+    const body = {
+      vehicle_name:       nameEl.value.trim(),
+      ambulance_code:     codeEl.value.trim(),
+      status,
+      unavailable_reason: reason || null,
+    };
+
+    if (currentAmbId) {
+      await apiFetch(`/api/ambulances/${currentAmbId}`, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      await apiFetch('/api/ambulances', { method: 'POST', body: JSON.stringify(body) });
+    }
+
+    closeAmbOverlay();
+    await loadAmbulances();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+// ── Delete ────────────────────────────────────────────
+function openDeleteConfirm()  { document.getElementById('delete-popup').classList.add('open'); }
+function closeDeleteConfirm() { document.getElementById('delete-popup').classList.remove('open'); }
+
+async function confirmDelete() {
+  if (!currentAmbId) return;
+  try {
+    await apiFetch(`/api/ambulances/${currentAmbId}`, { method: 'DELETE' });
+    closeDeleteConfirm();
+    closeAmbOverlay();
+    await loadAmbulances();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────
+document.addEventListener('componentsReady', loadAmbulances);

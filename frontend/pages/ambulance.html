@@ -24,7 +24,7 @@
               <i class="bi bi-search"></i>
             </button>
           </div>
-          <button class="btn btn-primary" onclick="openAmbOverlay('add')">
+          <button class="btn btn-primary" onclick="openAddOverlay()">
             <i class="bi bi-plus-lg"></i> Add Ambulance
           </button>
         </div>
@@ -39,21 +39,6 @@
               </tr>
             </thead>
             <tbody id="ambulance-table-body">
-              <tr>
-                <td><a href="#" class="amb-code-link" onclick="openAmbOverlay('edit', 'AMB-001'); return false;">AMB-001</a></td>
-                <td>Toyota HiAce</td>
-                <td><span class="status-badge status-assigned">Assigned</span></td>
-              </tr>
-              <tr>
-                <td><a href="#" class="amb-code-link" onclick="openAmbOverlay('edit', 'AMB-002'); return false;">AMB-002</a></td>
-                <td>Ford Transit</td>
-                <td><span class="status-badge status-available">Available</span></td>
-              </tr>
-              <tr>
-                <td><a href="#" class="amb-code-link" onclick="openAmbOverlay('edit', 'AMB-003'); return false;">AMB-003</a></td>
-                <td>Mercedes Sprinter</td>
-                <td><span class="status-badge status-unavailable">Unavailable</span></td>
-              </tr>
             </tbody>
           </table>
         </div>
