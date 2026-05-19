@@ -34,6 +34,36 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /api/auth/change-password (admin only)
+router.post('/change-password', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+
+  const { current_password, new_password } = req.body || {};
+  if (!current_password || !new_password)
+    return res.status(400).json({ error: 'Missing fields' });
+  if (new_password.length < 8)
+    return res.status(400).json({ error: 'New password must be at least 8 characters' });
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT password_hash, is_admin FROM users WHERE user_id = ?',
+      [req.session.userId]
+    );
+    if (!rows.length) return res.status(401).json({ error: 'Not authenticated' });
+    if (!rows[0].is_admin) return res.status(403).json({ error: 'Admin only' });
+
+    const match = await bcrypt.compare(current_password, rows[0].password_hash);
+    if (!match) return res.status(401).json({ error: 'Current password is incorrect' });
+
+    const hash = await bcrypt.hash(new_password, 12);
+    await pool.query('UPDATE users SET password_hash = ? WHERE user_id = ?', [hash, req.session.userId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
