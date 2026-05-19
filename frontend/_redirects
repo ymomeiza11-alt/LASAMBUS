@@ -1,1 +1,2 @@
 /api/*  https://lasambus-production.up.railway.app/api/:splat  200
+/       /pages/login.html                                        302
