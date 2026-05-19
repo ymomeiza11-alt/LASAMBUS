@@ -1,16 +1,3 @@
-function formatDate(d) {
-  if (!d) return '—';
-  const [y, m, day] = d.split('-');
-  return `${day}/${m}/${y}`;
-}
-
-function statusBadge(status) {
-  const map = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
-  const cls = map[status] || 'status-active';
-  const label = status === 'Complete' ? 'Completed' : status;
-  return `<span class="status-badge ${cls}">${label}</span>`;
-}
-
 async function loadDashboard() {
   try {
     const res  = await fetch('/api/dashboard');

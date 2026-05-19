@@ -1,13 +1,6 @@
 let ambulances    = [];
 let currentAmbId  = null;
 
-async function apiFetch(url, opts = {}) {
-  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
-}
-
 function statusBadge(status) {
   const map = { Available: 'status-available', Assigned: 'status-assigned', Unavailable: 'status-unavailable' };
   return `<span class="status-badge ${map[status] || ''}">${status}</span>`;
