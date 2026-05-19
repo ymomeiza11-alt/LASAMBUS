@@ -37,9 +37,9 @@ function renderCasesTable(cases) {
   }
   const offset = (casesPage - 1) * CASES_LIMIT;
   tbody.innerHTML = cases.map((c, i) => `
-    <tr>
+    <tr class="clickable-row" onclick="openCaseOverlay(${c.case_id})">
       <td>${offset + i + 1}</td>
-      <td><a href="#" class="case-id-link" onclick="openCaseOverlay(${c.case_id}); return false;">${c.case_id}</a></td>
+      <td>${c.case_id}</td>
       <td>${formatDate(c.date_of_incident)}</td>
       <td>${c.time_of_incident || '—'}</td>
       <td>${c.incident_type || '—'}</td>
@@ -482,14 +482,13 @@ async function loadPatientList(caseId) {
       return;
     }
     tbody.innerHTML = patients.map((p, i) => `
-      <tr>
+      <tr class="clickable-row" onclick="openViewMore(${p.patient_id})">
         <td>${i + 1}</td>
         <td>${p.situation_on_arrival || '—'}</td>
         <td>${p.full_name || '—'}</td>
         <td>${p.home_address || '—'}</td>
         <td>${p.gender || '—'}</td>
         <td>${p.submitted_by_username || '—'}</td>
-        <td><a href="#" class="view-more-link" onclick="openViewMore(${p.patient_id}); return false;">View</a></td>
       </tr>`).join('');
   } catch (err) {
     console.error('Patient list error:', err);

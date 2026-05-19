@@ -23,8 +23,8 @@ function renderTable(list) {
     return;
   }
   tbody.innerHTML = list.map(a => `
-    <tr>
-      <td><a href="#" class="amb-code-link" onclick="openEditOverlay(${a.ambulance_id}); return false;">${a.ambulance_code}</a></td>
+    <tr class="clickable-row" onclick="openEditOverlay(${a.ambulance_id})">
+      <td>${a.ambulance_code}</td>
       <td>${a.vehicle_name}</td>
       <td>${statusBadge(a.status)}</td>
     </tr>`).join('');

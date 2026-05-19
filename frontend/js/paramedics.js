@@ -29,12 +29,8 @@ function renderParamedicsTable(list) {
     return;
   }
   tbody.innerHTML = list.map(p => `
-    <tr>
-      <td>
-        ${isAdmin
-          ? `<a href="#" onclick="openParamedicOverlay('edit', ${p.user_id}); return false;">${p.username}</a>`
-          : p.username}
-      </td>
+    <tr ${isAdmin ? `class="clickable-row" onclick="openParamedicOverlay('edit', ${p.user_id})"` : ''}>
+      <td>${p.username}</td>
       <td>${p.title ? p.title + '. ' : ''}${p.first_name} ${p.last_name}</td>
       <td>${p.cadre || '—'}</td>
       <td>${p.grade_level || '—'}</td>

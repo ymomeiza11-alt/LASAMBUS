@@ -311,6 +311,7 @@ tbody tr { border-bottom: 1px solid #f0f2f5; transition: background var(--transi
 tbody tr:nth-child(even) { background: #fafbfd; }
 tbody tr:hover { background: #eef4ff; }
 tbody td { padding: 10px 14px; vertical-align: middle; }
+tbody tr.clickable-row { cursor: pointer; }
 
 /* ══════════════════════════════════════════════
    Buttons
