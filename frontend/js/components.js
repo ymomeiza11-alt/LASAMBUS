@@ -63,6 +63,12 @@ async function injectComponents() {
             <span class="sidebar-label">Report</span>
           </a>
         </li>
+        <li>
+          <a href="javascript:void(0)" class="sidebar-link" onclick="openExportOverlay()">
+            <i class="bi bi-download"></i>
+            <span class="sidebar-label">Export</span>
+          </a>
+        </li>
       </ul>
       <div class="sidebar-datetime">
         <span id="sidebar-date"></span>
@@ -82,6 +88,87 @@ async function injectComponents() {
   if (headerEl)  headerEl.innerHTML  = header;
   if (sidebarEl) sidebarEl.innerHTML = sidebar;
   if (footerEl)  footerEl.innerHTML  = footer;
+
+  // Inject export overlay into every page if not already present
+  if (!document.getElementById('export-overlay')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="overlay-backdrop" id="export-overlay">
+        <div class="overlay-panel" style="max-width:500px;">
+          <button class="overlay-back-btn" onclick="closeExportOverlay()">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <h2 class="page-title">Export Data</h2>
+          <form id="exportForm">
+            <div class="form-group">
+              <label>Table</label>
+              <select id="export-table">
+                <option value="cases">Cases</option>
+                <option value="paramedics">Paramedics</option>
+                <option value="patient_info">Patient Info</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Row Range</label>
+              <select id="row-range" onchange="handleRangeChange(this.value)">
+                <option value="50">1 - 50</option>
+                <option value="100">1 - 100</option>
+                <option value="150">1 - 150</option>
+                <option value="200">1 - 200</option>
+                <option value="250">1 - 250</option>
+                <option value="300">1 - 300</option>
+                <option value="full">Full Table</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div id="custom-range-group" class="hidden">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>From (Row)</label>
+                  <input type="number" id="custom-from" placeholder="1" min="1" value="1" />
+                </div>
+                <div class="form-group">
+                  <label>To (Row)</label>
+                  <input type="number" id="custom-to" placeholder="e.g. 75" min="1" />
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Export Format</label>
+              <select id="export-format">
+                <option value="csv">CSV</option>
+                <option value="excel">Excel (.xlsx)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-download"></i> Export
+            </button>
+          </form>
+        </div>
+      </div>`);
+
+    document.getElementById('export-overlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeExportOverlay();
+    });
+
+    document.getElementById('exportForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const table  = document.getElementById('export-table').value;
+      const range  = document.getElementById('row-range').value;
+      const format = document.getElementById('export-format').value;
+      const params = new URLSearchParams({ table, range, format });
+      if (range === 'custom') {
+        const from = document.getElementById('custom-from').value;
+        const to   = document.getElementById('custom-to').value;
+        if (!from || !to || parseInt(from) > parseInt(to)) {
+          alert('Please enter a valid custom range.');
+          return;
+        }
+        params.set('from', from);
+        params.set('to', to);
+      }
+      window.location.href = `/api/export?${params}`;
+    });
+  }
 
   startClock();
   initSidebar();
@@ -158,6 +245,21 @@ function statusBadge(s) {
   const cls = map[s] || 'status-active';
   const label = s === 'Complete' ? 'Completed' : s;
   return `<span class="status-badge ${cls}">${label}</span>`;
+}
+
+// ── Export overlay (available on every page) ──────────
+function openExportOverlay() {
+  document.getElementById('export-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeExportOverlay() {
+  document.getElementById('export-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleRangeChange(value) {
+  document.getElementById('custom-range-group').classList.toggle('hidden', value !== 'custom');
 }
 
 document.addEventListener('DOMContentLoaded', injectComponents);
