@@ -26,7 +26,10 @@ const sessionStore = new MySQLStore(
   sessionPool
 );
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const app = express();
+app.set('trust proxy', 1); // required when running behind Railway / Netlify reverse proxies
 app.use(express.json());
 
 app.use(session({
@@ -36,7 +39,8 @@ app.use(session({
   store:             sessionStore,
   cookie: {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: isProd ? 'none' : 'lax',
+    secure:   isProd,
     maxAge:   365 * 24 * 60 * 60 * 1000, // 1 year — persist until logout
   },
 }));
