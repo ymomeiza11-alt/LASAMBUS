@@ -7,29 +7,6 @@ let currentCaseId = null;
 const ncSelectedParamedics = [];
 const selectedParamedics   = [];
 
-// ── Helpers ───────────────────────────────────────────
-function formatDate(d) {
-  if (!d) return '—';
-  const [y, m, day] = d.split('-');
-  return `${day}/${m}/${y}`;
-}
-
-function statusBadge(s) {
-  const map = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
-  const cls = map[s] || 'status-active';
-  const label = s === 'Complete' ? 'Completed' : s;
-  return `<span class="status-badge ${cls}">${label}</span>`;
-}
-
-async function apiFetch(url, opts = {}) {
-  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(err.error || 'Request failed');
-  }
-  return res.json();
-}
-
 // ── Cases list ────────────────────────────────────────
 async function loadCases() {
   const params = new URLSearchParams({
@@ -286,7 +263,6 @@ async function loadCaseDetail(caseId) {
     badge.className = `status-badge ${map[c.case_status] || 'status-active'}`;
     badge.textContent = c.case_status === 'Complete' ? 'Completed' : c.case_status;
 
-    // Pre-fill edit fields
     setSelectVal('edit-incident-type', c.incident_type);
     setSelectVal('edit-severity', c.incident_severity);
     setSelectVal('edit-lga', c.lga_lcda);
@@ -353,7 +329,6 @@ function populateDispatch(c) {
   } else {
     document.getElementById('dispatch-form').classList.remove('hidden');
     document.getElementById('dispatch-saved').classList.add('hidden');
-    // Pre-fill date
     document.getElementById('dispatch-date').value = c.date_of_incident || '';
     selectedParamedics.length = 0;
     document.getElementById('paramedic-selected-list').innerHTML = '';
@@ -463,8 +438,6 @@ function patientFormNav(direction) {
   nextBtn.classList.toggle('hidden', currentPatientPage === totalPatientPages);
   saveBtn.classList.toggle('hidden', currentPatientPage !== totalPatientPages);
 }
-
-function savePatientDraft() { alert('Draft saved (not yet implemented — save final to persist).'); }
 
 async function savePatientFinal() {
   const g = id => document.getElementById(id)?.value.trim() || null;

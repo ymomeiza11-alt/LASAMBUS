@@ -1,11 +1,5 @@
 let reportFilters = { start: null, end: null };
 
-async function apiFetch(url, opts = {}) {
-  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Request failed');
-  return res.json();
-}
-
 // ── Load metrics ──────────────────────────────────────
 async function loadReport() {
   const params = new URLSearchParams();

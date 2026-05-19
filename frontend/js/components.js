@@ -136,4 +136,28 @@ async function handleLogout() {
   window.location.href = '/pages/login.html';
 }
 
+// ── Shared utilities (available to all page scripts) ──
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || 'Request failed');
+  }
+  return res.json();
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+// Case status badge — page scripts may override for their own status types
+function statusBadge(s) {
+  const map = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
+  const cls = map[s] || 'status-active';
+  const label = s === 'Complete' ? 'Completed' : s;
+  return `<span class="status-badge ${cls}">${label}</span>`;
+}
+
 document.addEventListener('DOMContentLoaded', injectComponents);
