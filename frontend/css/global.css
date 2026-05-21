@@ -1161,6 +1161,8 @@ input[type="checkbox"] {
 ══════════════════════════════════════════════ */
 .patient-page { display: none; }
 .patient-page.active { display: block; }
+.ep-page { display: none; }
+.ep-page.active { display: block; }
 
 /* ══════════════════════════════════════════════
    Legacy Stat Cards (Compat)

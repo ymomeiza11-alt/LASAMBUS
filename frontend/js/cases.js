@@ -495,13 +495,16 @@ async function loadPatientList(caseId) {
   }
 }
 
-let viewMorePatientId = null;
+let viewMorePatientId   = null;
+let viewMorePatientData = null;
 
 async function openViewMore(patientId) {
-  viewMorePatientId = patientId;
+  viewMorePatientId   = patientId;
+  viewMorePatientData = null;
   document.getElementById('view-more-overlay').classList.add('open');
   try {
     const p = await apiFetch(`/api/cases/${currentCaseId}/patients/${patientId}`);
+    viewMorePatientData = p;
     const display = (v) => v || '—';
     document.getElementById('view-more-content').innerHTML = `
       <div class="view-more-section">
@@ -540,7 +543,116 @@ function closeViewMore() {
 
 function editPatientFromViewMore() {
   closeViewMore();
-  switchTab('patient-form', document.querySelectorAll('#case-overlay .inpage-tab')[3]);
+  if (viewMorePatientData) openEditPatientModal(viewMorePatientData);
+}
+
+// ── Edit Patient Modal ────────────────────────────────
+let epCurrentPage = 1;
+const EP_TOTAL_PAGES = 7;
+
+function openEditPatientModal(p) {
+  const s = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  s('ep-fullname', p.full_name);    s('ep-age', p.age);
+  s('ep-gender', p.gender);         s('ep-address', p.home_address);
+  s('ep-state', p.state_of_origin); s('ep-lga', p.lga);
+  s('ep-phone', p.phone_number);    s('ep-occupation', p.occupation);
+
+  s('ep-resp-rate', p.respiratory_rate); s('ep-temp', p.temperature);
+  s('ep-condition', p.condition_on_arrival); s('ep-spo2', p.spo2);
+
+  s('ep-gastro', p.gastrointestinal);     s('ep-medical-hx', p.known_medical_history);
+  s('ep-cancer', p.cancer_diagnosis);     s('ep-renal', p.renal_urological);
+
+  s('ep-consciousness', p.level_of_consciousness); s('ep-airway', p.airway);
+  s('ep-breathing', p.breathing);                  s('ep-circulation', p.circulation);
+
+  s('ep-airway-mgmt', p.airway_management);       s('ep-airway-add', p.airway_additional);
+  s('ep-breathing-assist', p.breathing_assistance); s('ep-breathing-add', p.breathing_additional);
+  s('ep-cardiac', p.cardiac_care);
+
+  s('ep-hospital', p.hospital_name);
+  s('ep-depart-time', p.transport_departure_time);
+  s('ep-arrive-hosp-time', p.transport_arrival_time);
+  s('ep-outcome', p.outcome_at_hospital);
+  s('ep-hosp-date', p.hospital_date);  s('ep-hosp-time', p.hospital_time);
+
+  s('ep-hcp-designation', p.hcp_designation); s('ep-hcp-name', p.hcp_name);
+  s('ep-law', p.law_enforcement);
+  s('ep-belongings', p.patient_belongings);   s('ep-witnesses', p.witnesses);
+
+  epCurrentPage = 1;
+  document.querySelectorAll('.ep-page').forEach((pg, i) => pg.classList.toggle('active', i === 0));
+  document.querySelectorAll('#ep-progress .progress-step').forEach((st, i) => {
+    st.classList.toggle('current', i === 0);
+    st.classList.remove('done');
+  });
+  document.getElementById('ep-btn-prev').disabled = true;
+  document.getElementById('ep-btn-next').classList.remove('hidden');
+  document.getElementById('ep-btn-save').classList.add('hidden');
+
+  document.getElementById('edit-patient-modal').classList.add('open');
+}
+
+function closeEditPatientModal() {
+  document.getElementById('edit-patient-modal').classList.remove('open');
+}
+
+function epFormNav(direction) {
+  const pages   = document.querySelectorAll('.ep-page');
+  const steps   = document.querySelectorAll('#ep-progress .progress-step');
+  const prevBtn = document.getElementById('ep-btn-prev');
+  const nextBtn = document.getElementById('ep-btn-next');
+  const saveBtn = document.getElementById('ep-btn-save');
+
+  pages[epCurrentPage - 1].classList.remove('active');
+  steps[epCurrentPage - 1].classList.remove('current');
+  if (direction > 0) steps[epCurrentPage - 1].classList.add('done');
+
+  epCurrentPage = Math.min(Math.max(epCurrentPage + direction, 1), EP_TOTAL_PAGES);
+
+  pages[epCurrentPage - 1].classList.add('active');
+  steps[epCurrentPage - 1].classList.remove('done');
+  steps[epCurrentPage - 1].classList.add('current');
+
+  prevBtn.disabled = epCurrentPage === 1;
+  nextBtn.classList.toggle('hidden', epCurrentPage === EP_TOTAL_PAGES);
+  saveBtn.classList.toggle('hidden', epCurrentPage !== EP_TOTAL_PAGES);
+}
+
+async function saveEditPatient() {
+  const g = id => document.getElementById(id)?.value.trim() || null;
+  const payload = {
+    full_name: g('ep-fullname'), age: g('ep-age'), gender: g('ep-gender'),
+    home_address: g('ep-address'), state_of_origin: g('ep-state'), lga: g('ep-lga'),
+    phone_number: g('ep-phone'), occupation: g('ep-occupation'),
+    respiratory_rate: g('ep-resp-rate'), temperature: g('ep-temp'),
+    condition_on_arrival: g('ep-condition'), spo2: g('ep-spo2'),
+    gastrointestinal: g('ep-gastro'), known_medical_history: g('ep-medical-hx'),
+    cancer_diagnosis: g('ep-cancer'), renal_urological: g('ep-renal'),
+    level_of_consciousness: g('ep-consciousness'), airway: g('ep-airway'),
+    breathing: g('ep-breathing'), circulation: g('ep-circulation'),
+    airway_management: g('ep-airway-mgmt'), airway_additional: g('ep-airway-add'),
+    breathing_assistance: g('ep-breathing-assist'), breathing_additional: g('ep-breathing-add'),
+    cardiac_care: g('ep-cardiac'),
+    hospital_name: g('ep-hospital'), transport_departure_time: g('ep-depart-time'),
+    transport_arrival_time: g('ep-arrive-hosp-time'), outcome_at_hospital: g('ep-outcome'),
+    hospital_date: g('ep-hosp-date'), hospital_time: g('ep-hosp-time'),
+    hcp_designation: g('ep-hcp-designation'), hcp_name: g('ep-hcp-name'),
+    law_enforcement: g('ep-law'), patient_belongings: g('ep-belongings'),
+    witnesses: g('ep-witnesses'),
+    situation_on_arrival: viewMorePatientData?.situation_on_arrival || null,
+  };
+
+  try {
+    await apiFetch(`/api/cases/${currentCaseId}/patients/${viewMorePatientId}`, {
+      method: 'PUT', body: JSON.stringify(payload),
+    });
+    closeEditPatientModal();
+    loadPatientList(currentCaseId);
+  } catch (err) {
+    alert('Could not save patient: ' + err.message);
+  }
 }
 
 // ── Tab switching ─────────────────────────────────────
@@ -572,6 +684,9 @@ document.getElementById('new-case-overlay')?.addEventListener('click', e => {
 });
 document.getElementById('view-more-overlay')?.addEventListener('click', e => {
   if (e.target === e.currentTarget) closeViewMore();
+});
+document.getElementById('edit-patient-modal')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEditPatientModal();
 });
 document.getElementById('cases-filter-modal')?.addEventListener('click', e => {
   if (e.target === e.currentTarget) closeCasesFilterModal();
