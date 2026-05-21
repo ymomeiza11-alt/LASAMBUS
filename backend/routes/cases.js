@@ -396,4 +396,56 @@ router.get('/:id/patients/:pid', requireLogin, async (req, res) => {
   }
 });
 
+// PUT /api/cases/:id/patients/:pid
+router.put('/:id/patients/:pid', requireLogin, async (req, res) => {
+  const {
+    full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
+    respiratory_rate, temperature, condition_on_arrival, spo2,
+    gastrointestinal, known_medical_history, cancer_diagnosis, renal_urological,
+    level_of_consciousness, airway, breathing, circulation,
+    airway_management, airway_additional, breathing_assistance, breathing_additional, cardiac_care,
+    hospital_name, transport_departure_time, transport_arrival_time, outcome_at_hospital, hospital_date, hospital_time,
+    hcp_designation, hcp_name, law_enforcement, patient_belongings, witnesses,
+    situation_on_arrival,
+  } = req.body;
+
+  try {
+    const n = v => (v === '' || v === undefined ? null : v);
+    const [result] = await pool.query(
+      `UPDATE patient_info SET
+         full_name = ?, age = ?, gender = ?, home_address = ?, state_of_origin = ?, lga = ?,
+         phone_number = ?, occupation = ?,
+         respiratory_rate = ?, temperature = ?, condition_on_arrival = ?, spo2 = ?,
+         gastrointestinal = ?, known_medical_history = ?, cancer_diagnosis = ?, renal_urological = ?,
+         level_of_consciousness = ?, airway = ?, breathing = ?, circulation = ?,
+         airway_management = ?, airway_additional = ?, breathing_assistance = ?, breathing_additional = ?,
+         cardiac_care = ?,
+         hospital_name = ?, transport_departure_time = ?, transport_arrival_time = ?,
+         outcome_at_hospital = ?, hospital_date = ?, hospital_time = ?,
+         hcp_designation = ?, hcp_name = ?, law_enforcement = ?, patient_belongings = ?, witnesses = ?,
+         situation_on_arrival = ?
+       WHERE patient_id = ? AND case_id = ?`,
+      [
+        n(full_name), n(age), n(gender), n(home_address), n(state_of_origin), n(lga),
+        n(phone_number), n(occupation),
+        n(respiratory_rate), n(temperature), n(condition_on_arrival), n(spo2),
+        n(gastrointestinal), n(known_medical_history), n(cancer_diagnosis), n(renal_urological),
+        n(level_of_consciousness), n(airway), n(breathing), n(circulation),
+        n(airway_management), n(airway_additional), n(breathing_assistance), n(breathing_additional),
+        n(cardiac_care),
+        n(hospital_name), n(transport_departure_time), n(transport_arrival_time),
+        n(outcome_at_hospital), n(hospital_date), n(hospital_time),
+        n(hcp_designation), n(hcp_name), n(law_enforcement), n(patient_belongings), n(witnesses),
+        n(situation_on_arrival),
+        req.params.pid, req.params.id,
+      ]
+    );
+    if (!result.affectedRows) return res.status(404).json({ error: 'Patient not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -571,6 +571,145 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════
+       EDIT PATIENT MODAL
+  ══════════════════════════════════════════ -->
+  <div class="overlay-backdrop" id="edit-patient-modal">
+    <div class="overlay-panel">
+      <button class="overlay-back-btn" onclick="closeEditPatientModal()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+      <h2 class="page-title">Edit Patient</h2>
+
+      <div class="form-progress" id="ep-progress">
+        <div class="progress-step current"><div class="step-dot">1</div><div class="step-label">Patient Info</div></div>
+        <div class="progress-step"><div class="step-dot">2</div><div class="step-label">Assessment</div></div>
+        <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Medical Hx</div></div>
+        <div class="progress-step"><div class="step-dot">4</div><div class="step-label">Primary Assess</div></div>
+        <div class="progress-step"><div class="step-dot">5</div><div class="step-label">Treatment</div></div>
+        <div class="progress-step"><div class="step-dot">6</div><div class="step-label">Hospital</div></div>
+        <div class="progress-step"><div class="step-dot">7</div><div class="step-label">Additional</div></div>
+      </div>
+
+      <div class="card">
+        <!-- Page 1 -->
+        <div class="ep-page active" id="ep-page-1">
+          <h3 class="section-heading mb-16">Patient Information</h3>
+          <div class="form-group"><label>Patient's Full Name</label><input type="text" id="ep-fullname" placeholder="Full Name" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>Age</label><input type="number" id="ep-age" min="0" max="120" /></div>
+            <div class="form-group"><label>Gender</label><select id="ep-gender"><option value="">-- Select --</option><option>Male</option><option>Female</option></select></div>
+          </div>
+          <div class="form-group"><label>Home Address</label><input type="text" id="ep-address" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>State of Origin</label>
+              <select id="ep-state"><option value="">-- Select State --</option>
+                <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option>
+                <option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option>
+                <option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option>
+                <option>Ekiti</option><option>Enugu</option><option>FCT</option><option>Gombe</option>
+                <option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option>
+                <option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option>
+                <option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option>
+                <option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option>
+                <option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option>
+                <option>Zamfara</option>
+              </select>
+            </div>
+            <div class="form-group"><label>LGA</label>
+              <select id="ep-lga"><option value="">-- Select LGA --</option>
+                <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+                <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+                <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+                <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+                <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+                <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+                <option>Somolu</option><option>Surulere</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="ep-phone" placeholder="e.g. 08012345678" /></div>
+            <div class="form-group"><label>Occupation</label><input type="text" id="ep-occupation" /></div>
+          </div>
+        </div>
+
+        <!-- Page 2 -->
+        <div class="ep-page" id="ep-page-2">
+          <h3 class="section-heading mb-16">General Assessment</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Respiratory Rate (rpm)</label><input type="number" id="ep-resp-rate" /></div>
+            <div class="form-group"><label>Temperature (°C)</label><input type="number" id="ep-temp" step="0.1" /></div>
+          </div>
+          <div class="form-group"><label>Condition of Patient on Arrival</label>
+            <select id="ep-condition"><option value="">-- Select --</option><option>Stable</option><option>Unstable</option></select>
+          </div>
+          <div class="form-group"><label>Oxygen Saturation (SpO2%) on Room Air</label><input type="text" id="ep-spo2" placeholder="e.g. 98%" /></div>
+        </div>
+
+        <!-- Page 3 -->
+        <div class="ep-page" id="ep-page-3">
+          <h3 class="section-heading mb-16">Medical History</h3>
+          <div class="form-group"><label>Gastrointestinal</label><input type="text" id="ep-gastro" /></div>
+          <div class="form-group"><label>Known Medical History</label><input type="text" id="ep-medical-hx" placeholder="e.g. Hypertension, Diabetes" /></div>
+          <div class="form-group"><label>Previous Cancer Diagnosis (Specify type)</label><input type="text" id="ep-cancer" /></div>
+          <div class="form-group"><label>Renal/Urological</label><input type="text" id="ep-renal" /></div>
+        </div>
+
+        <!-- Page 4 -->
+        <div class="ep-page" id="ep-page-4">
+          <h3 class="section-heading mb-16">Primary Assessment</h3>
+          <div class="form-group"><label>Level of Consciousness</label><input type="text" id="ep-consciousness" placeholder="e.g. Alert, Confused, Unconscious" /></div>
+          <div class="form-group"><label>Airway</label><input type="text" id="ep-airway" placeholder="e.g. Patent, Obstructed" /></div>
+          <div class="form-group"><label>Breathing</label><input type="text" id="ep-breathing" placeholder="e.g. Normal, Laboured" /></div>
+          <div class="form-group"><label>Circulation</label><input type="text" id="ep-circulation" placeholder="e.g. Strong pulse, Weak pulse" /></div>
+        </div>
+
+        <!-- Page 5 -->
+        <div class="ep-page" id="ep-page-5">
+          <h3 class="section-heading mb-16">Treatment and Interventions</h3>
+          <div class="form-group"><label>Airway Management</label><input type="text" id="ep-airway-mgmt" /></div>
+          <div class="form-group"><label>Additional Information (Airway)</label><textarea id="ep-airway-add"></textarea></div>
+          <div class="form-group"><label>Breathing Assistance</label><input type="text" id="ep-breathing-assist" /></div>
+          <div class="form-group"><label>Additional Information (Breathing)</label><textarea id="ep-breathing-add"></textarea></div>
+          <div class="form-group"><label>Cardiac Care</label><input type="text" id="ep-cardiac" /></div>
+        </div>
+
+        <!-- Page 6 -->
+        <div class="ep-page" id="ep-page-6">
+          <h3 class="section-heading mb-16">Destination Hospital</h3>
+          <div class="form-group"><label>Hospital Name</label><input type="text" id="ep-hospital" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>Transport Departure Time to Hospital</label><input type="time" id="ep-depart-time" step="1" /></div>
+            <div class="form-group"><label>Transport Arrival Time at Hospital</label><input type="time" id="ep-arrive-hosp-time" step="1" /></div>
+          </div>
+          <div class="form-group"><label>Outcome at Destination Hospital</label><textarea id="ep-outcome"></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Date</label><input type="date" id="ep-hosp-date" /></div>
+            <div class="form-group"><label>Time</label><input type="time" id="ep-hosp-time" step="1" /></div>
+          </div>
+        </div>
+
+        <!-- Page 7 -->
+        <div class="ep-page" id="ep-page-7">
+          <h3 class="section-heading mb-16">Additional Information</h3>
+          <div class="form-group"><label>Designation of Health Care Provider</label><input type="text" id="ep-hcp-designation" /></div>
+          <div class="form-group"><label>Name of Health Care Provider</label><input type="text" id="ep-hcp-name" /></div>
+          <div class="form-group"><label>Law Enforcement Involved</label><input type="text" id="ep-law" /></div>
+          <div class="form-group"><label>Patient's Belonging(s)</label><textarea id="ep-belongings"></textarea></div>
+          <div class="form-group"><label>Witnesses (Names and Contact Information)</label><textarea id="ep-witnesses"></textarea></div>
+        </div>
+
+        <!-- Nav buttons -->
+        <div class="flex justify-between align-center mt-24">
+          <button class="btn btn-secondary" id="ep-btn-prev" onclick="epFormNav(-1)" disabled>Previous</button>
+          <button class="btn btn-success hidden" id="ep-btn-save" onclick="saveEditPatient()">Save Changes</button>
+          <button class="btn btn-primary" id="ep-btn-next" onclick="epFormNav(1)">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Cases Filter Modal -->
   <div class="filter-modal-backdrop" id="cases-filter-modal">
     <div class="filter-modal">
