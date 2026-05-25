@@ -4,6 +4,11 @@ const { pool }         = require('../config/db');
 const { requireLogin } = require('../middleware/auth');
 
 const TABLE_CONFIG = {
+  ambulances: {
+    sql:     'SELECT * FROM ambulances',
+    columns: ['ambulance_id','vehicle_name','ambulance_code','plate_number','status','unavailable_reason','created_at'],
+    filename: 'lasambus-ambulances',
+  },
   cases: {
     sql:     'SELECT * FROM cases',
     columns: [

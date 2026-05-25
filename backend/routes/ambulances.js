@@ -6,7 +6,7 @@ const { requireLogin } = require('../middleware/auth');
 router.get('/', requireLogin, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT ambulance_id, vehicle_name, ambulance_code, status, unavailable_reason FROM ambulances ORDER BY ambulance_code'
+      'SELECT ambulance_id, vehicle_name, ambulance_code, plate_number, status, unavailable_reason FROM ambulances ORDER BY ambulance_code'
     );
     res.json(rows);
   } catch (err) {
@@ -31,14 +31,14 @@ router.get('/available', requireLogin, async (req, res) => {
 
 // POST /api/ambulances
 router.post('/', requireLogin, async (req, res) => {
-  const { vehicle_name, ambulance_code } = req.body || {};
+  const { vehicle_name, ambulance_code, plate_number } = req.body || {};
   if (!vehicle_name?.trim() || !ambulance_code?.trim())
     return res.status(400).json({ error: 'Vehicle name and ambulance code are required' });
 
   try {
     const [result] = await pool.query(
-      `INSERT INTO ambulances (vehicle_name, ambulance_code, status) VALUES (?, ?, 'Available')`,
-      [vehicle_name.trim(), ambulance_code.trim()]
+      `INSERT INTO ambulances (vehicle_name, ambulance_code, plate_number, status) VALUES (?, ?, ?, 'Available')`,
+      [vehicle_name.trim(), ambulance_code.trim(), plate_number?.trim() || null]
     );
     res.status(201).json({ ambulance_id: result.insertId });
   } catch (err) {
@@ -52,18 +52,19 @@ router.post('/', requireLogin, async (req, res) => {
 // PUT /api/ambulances/:id
 router.put('/:id', requireLogin, async (req, res) => {
   const id = parseInt(req.params.id);
-  const { vehicle_name, ambulance_code, status, unavailable_reason } = req.body || {};
+  const { vehicle_name, ambulance_code, plate_number, status, unavailable_reason } = req.body || {};
   if (!vehicle_name?.trim() || !ambulance_code?.trim())
     return res.status(400).json({ error: 'Vehicle name and ambulance code are required' });
 
   try {
     const [result] = await pool.query(
       `UPDATE ambulances
-       SET vehicle_name = ?, ambulance_code = ?, status = ?, unavailable_reason = ?
+       SET vehicle_name = ?, ambulance_code = ?, plate_number = ?, status = ?, unavailable_reason = ?
        WHERE ambulance_id = ?`,
       [
         vehicle_name.trim(),
         ambulance_code.trim(),
+        plate_number?.trim() || null,
         status || 'Available',
         status === 'Unavailable' ? (unavailable_reason?.trim() || null) : null,
         id,

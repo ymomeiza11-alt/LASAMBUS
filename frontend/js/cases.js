@@ -1,3 +1,27 @@
+// ── "Other" select helper ─────────────────────────────
+function handleOtherSelect(sel, otherId) {
+  const v = sel.value;
+  const el = document.getElementById(otherId);
+  if (!el) return;
+  if (v === 'Other' || v === 'Others') {
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+    el.value = '';
+  }
+}
+
+function getOtherValue(selectId, otherId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return null;
+  const v = sel.value;
+  if ((v === 'Other' || v === 'Others') && otherId) {
+    const txt = document.getElementById(otherId)?.value.trim();
+    return txt || v;
+  }
+  return v;
+}
+
 // ── State ─────────────────────────────────────────────
 let casesPage    = 1;
 const CASES_LIMIT = 50;
@@ -205,10 +229,10 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
   const payload = {
     date_of_incident:    document.getElementById('nc-date').value,
     time_of_incident:    document.getElementById('nc-time').value,
-    notified_by:         document.getElementById('nc-notified-by').value,
+    notified_by:         getOtherValue('nc-notified-by', 'nc-notified-by-other'),
     lga_lcda:            document.getElementById('nc-lga').value,
-    incident_type:       document.getElementById('nc-incident-type').value,
-    incident_severity:   document.getElementById('nc-severity').value,
+    incident_type:       getOtherValue('nc-incident-type', 'nc-incident-type-other'),
+    incident_severity:   getOtherValue('nc-severity', 'nc-severity-other'),
     incident_location:   document.getElementById('nc-location').value,
     incident_description: document.getElementById('nc-description').value,
     dispatch_time:       document.getElementById('nc-dispatch-time').value || null,
@@ -300,8 +324,8 @@ function toggleEditMode(enable) {
 
 async function saveOverview() {
   const payload = {
-    incident_type:        document.getElementById('edit-incident-type').value,
-    incident_severity:    document.getElementById('edit-severity').value,
+    incident_type:        getOtherValue('edit-incident-type', 'edit-incident-type-other'),
+    incident_severity:    getOtherValue('edit-severity', 'edit-severity-other'),
     lga_lcda:             document.getElementById('edit-lga').value,
     incident_location:    document.getElementById('edit-location').value,
     case_status:          document.getElementById('edit-status').value,
@@ -391,7 +415,10 @@ function populateArrival(c) {
   } else {
     document.getElementById('arrival-form').classList.remove('hidden');
     document.getElementById('arrival-saved').classList.add('hidden');
-    document.getElementById('arrival-date').value = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('arrival-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    document.getElementById('arrival-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   }
 }
 

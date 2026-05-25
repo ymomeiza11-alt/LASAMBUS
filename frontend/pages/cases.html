@@ -105,7 +105,7 @@
 
           <div class="form-group">
             <label>Notified By <span class="req">*</span></label>
-            <select id="nc-notified-by" required>
+            <select id="nc-notified-by" required onchange="handleOtherSelect(this, 'nc-notified-by-other')">
               <option value="">-- Select --</option>
               <option>Call Center</option>
               <option>Hospital or Healthcare Facility</option>
@@ -118,6 +118,7 @@
               <option>Self Initiated (e.g. For Training, Community Event Coverage)</option>
               <option>Others</option>
             </select>
+            <input type="text" id="nc-notified-by-other" class="other-text hidden" placeholder="Please specify" />
             <span class="error-msg" id="err-nc-notified-by">This field is required.</span>
           </div>
 
@@ -139,7 +140,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Incident Type <span class="req">*</span></label>
-              <select id="nc-incident-type" required>
+              <select id="nc-incident-type" required onchange="handleOtherSelect(this, 'nc-incident-type-other')">
                 <option value="">-- Select --</option>
                 <option>Road Traffic Accident</option><option>Trauma</option>
                 <option>Fire Incident</option><option>Medical Emergencies</option>
@@ -151,15 +152,17 @@
                 <option>Mass Casualty Incident (MCI)</option><option>Hazards/Disasters</option>
                 <option>Others</option>
               </select>
+              <input type="text" id="nc-incident-type-other" class="other-text hidden" placeholder="Please specify" />
               <span class="error-msg" id="err-nc-type">This field is required.</span>
             </div>
             <div class="form-group">
               <label>Incident Severity <span class="req">*</span></label>
-              <select id="nc-severity" required>
+              <select id="nc-severity" required onchange="handleOtherSelect(this, 'nc-severity-other')">
                 <option value="">-- Select --</option>
                 <option>Minor</option><option>Moderate</option><option>Major</option>
                 <option>Severe</option><option>Critical</option><option>Other</option>
               </select>
+              <input type="text" id="nc-severity-other" class="other-text hidden" placeholder="Please specify" />
               <span class="error-msg" id="err-nc-severity">This field is required.</span>
             </div>
           </div>
@@ -251,7 +254,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Incident Type</label>
-                <select id="edit-incident-type">
+                <select id="edit-incident-type" onchange="handleOtherSelect(this, 'edit-incident-type-other')">
                   <option>Road Traffic Accident</option><option>Trauma</option>
                   <option>Fire Incident</option><option>Medical Emergencies</option>
                   <option>Obstetric/Gynecological</option><option>Pediatrics</option>
@@ -262,13 +265,15 @@
                   <option>Mass Casualty Incident (MCI)</option><option>Hazards/Disasters</option>
                   <option>Others</option>
                 </select>
+                <input type="text" id="edit-incident-type-other" class="other-text hidden" placeholder="Please specify" />
               </div>
               <div class="form-group">
                 <label>Incident Severity</label>
-                <select id="edit-severity">
+                <select id="edit-severity" onchange="handleOtherSelect(this, 'edit-severity-other')">
                   <option>Minor</option><option>Moderate</option><option>Major</option>
                   <option>Severe</option><option>Critical</option><option>Other</option>
                 </select>
+                <input type="text" id="edit-severity-other" class="other-text hidden" placeholder="Please specify" />
               </div>
             </div>
             <div class="form-group">
@@ -361,11 +366,11 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Arrived Date</label>
-                <input type="date" id="arrival-date" />
+                <input type="date" id="arrival-date" readonly />
               </div>
               <div class="form-group">
                 <label>Arrived Time</label>
-                <input type="time" id="arrival-time" step="1" />
+                <input type="time" id="arrival-time" step="1" readonly />
               </div>
             </div>
             <div class="form-group">

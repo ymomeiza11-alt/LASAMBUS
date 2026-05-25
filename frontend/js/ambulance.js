@@ -19,12 +19,13 @@ async function loadAmbulances() {
 function renderTable(list) {
   const tbody = document.getElementById('ambulance-table-body');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#888;">No ambulances found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#888;">No ambulances found.</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(a => `
     <tr class="clickable-row" onclick="openEditOverlay(${a.ambulance_id})">
       <td>${a.ambulance_code}</td>
+      <td>${a.plate_number || '—'}</td>
       <td>${a.vehicle_name}</td>
       <td>${statusBadge(a.status)}</td>
     </tr>`).join('');
@@ -62,6 +63,7 @@ function openEditOverlay(id) {
   document.getElementById('amb-status-group').classList.remove('hidden');
   document.getElementById('amb-vehicle-name').value  = amb.vehicle_name;
   document.getElementById('amb-code-input').value    = amb.ambulance_code;
+  document.getElementById('amb-plate-number').value  = amb.plate_number || '';
   document.getElementById('amb-status').value        = amb.status;
   document.getElementById('amb-unavailable-reason').value = amb.unavailable_reason || '';
   toggleAmbUnavailableReason(amb.status);
@@ -75,7 +77,7 @@ function closeAmbOverlay() {
 }
 
 function clearAmbForm() {
-  ['amb-vehicle-name', 'amb-code-input', 'amb-unavailable-reason'].forEach(id => {
+  ['amb-vehicle-name', 'amb-code-input', 'amb-plate-number', 'amb-unavailable-reason'].forEach(id => {
     document.getElementById(id).value = '';
   });
   ['err-amb-name', 'err-amb-code'].forEach(id => document.getElementById(id).classList.remove('visible'));
@@ -124,6 +126,7 @@ document.getElementById('ambForm').addEventListener('submit', async function (e)
     const body = {
       vehicle_name:       nameEl.value.trim(),
       ambulance_code:     codeEl.value.trim(),
+      plate_number:       document.getElementById('amb-plate-number').value.trim() || null,
       status,
       unavailable_reason: reason || null,
     };
