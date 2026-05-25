@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS ambulances (
   ambulance_id   INT AUTO_INCREMENT PRIMARY KEY,
   vehicle_name   VARCHAR(100) NOT NULL,
   ambulance_code VARCHAR(20)  NOT NULL UNIQUE,
+  plate_number   VARCHAR(30)  DEFAULT NULL,
   status         ENUM('Available','Assigned','Unavailable') NOT NULL DEFAULT 'Available',
   unavailable_reason TEXT,
   created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

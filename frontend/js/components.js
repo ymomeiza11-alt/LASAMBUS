@@ -105,6 +105,7 @@ async function injectComponents() {
                 <option value="cases">Cases</option>
                 <option value="paramedics">Paramedics</option>
                 <option value="patient_info">Patient Info</option>
+                <option value="ambulances">Ambulances</option>
               </select>
             </div>
             <div class="form-group">
