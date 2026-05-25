@@ -440,13 +440,37 @@ async function saveArrival() {
   }
 }
 
-// ── Patient form ──────────────────────────────────────
+// ── Add Patient Modal ─────────────────────────────────
 let currentPatientPage  = 1;
 const totalPatientPages = 7;
 
+function openAddPatientModal() {
+  const modal = document.getElementById('add-patient-modal');
+  currentPatientPage = 1;
+  modal.querySelectorAll('.patient-page').forEach((p, i) => p.classList.toggle('active', i === 0));
+  modal.querySelectorAll('.progress-step').forEach((s, i) => {
+    s.classList.toggle('current', i === 0);
+    s.classList.remove('done');
+  });
+  // clear all inputs
+  modal.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  document.getElementById('btn-prev-page').disabled = true;
+  document.getElementById('btn-next-page').classList.remove('hidden');
+  document.getElementById('btn-save-final').classList.add('hidden');
+  modal.classList.add('open');
+}
+
+function closeAddPatientModal() {
+  document.getElementById('add-patient-modal').classList.remove('open');
+}
+
 function patientFormNav(direction) {
-  const pages   = document.querySelectorAll('.patient-page');
-  const steps   = document.querySelectorAll('.progress-step');
+  const modal   = document.getElementById('add-patient-modal');
+  const pages   = modal.querySelectorAll('.patient-page');
+  const steps   = modal.querySelectorAll('.progress-step');
   const prevBtn = document.getElementById('btn-prev-page');
   const nextBtn = document.getElementById('btn-next-page');
   const saveBtn = document.getElementById('btn-save-final');
@@ -492,7 +516,8 @@ async function savePatientFinal() {
 
   try {
     await apiFetch(`/api/cases/${currentCaseId}/patients`, { method: 'POST', body: JSON.stringify(payload) });
-    switchTab('patient-list', document.querySelectorAll('#case-overlay .inpage-tab')[4]);
+    closeAddPatientModal();
+    switchTab('patient-list', document.getElementById('tab-btn-patients'));
     loadPatientList(currentCaseId);
   } catch (err) {
     alert('Could not save patient: ' + err.message);
@@ -688,18 +713,6 @@ function switchTab(tabName, btn) {
   document.querySelectorAll('#case-overlay .inpage-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
   if (btn) btn.classList.add('active');
-  // Reset patient form to page 1 when switching to it
-  if (tabName === 'patient-form') {
-    currentPatientPage = 1;
-    document.querySelectorAll('.patient-page').forEach((p, i) => p.classList.toggle('active', i === 0));
-    document.querySelectorAll('.progress-step').forEach((s, i) => {
-      s.classList.toggle('current', i === 0);
-      s.classList.remove('done');
-    });
-    document.getElementById('btn-prev-page').disabled = true;
-    document.getElementById('btn-next-page').classList.remove('hidden');
-    document.getElementById('btn-save-final').classList.add('hidden');
-  }
 }
 
 // ── Backdrop clicks ───────────────────────────────────
@@ -711,6 +724,9 @@ document.getElementById('new-case-overlay')?.addEventListener('click', e => {
 });
 document.getElementById('view-more-overlay')?.addEventListener('click', e => {
   if (e.target === e.currentTarget) closeViewMore();
+});
+document.getElementById('add-patient-modal')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAddPatientModal();
 });
 document.getElementById('edit-patient-modal')?.addEventListener('click', e => {
   if (e.target === e.currentTarget) closeEditPatientModal();
