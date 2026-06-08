@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS cases (
   dispatch_date       DATE,
   dispatch_time       TIME,                 -- NULL for migrated records
   ambulance_id        INT          DEFAULT NULL,
+  treatment_centre    VARCHAR(150) DEFAULT NULL,
   arrival_date        DATE,
   arrival_time        TIME,
   situation_on_arrival VARCHAR(100),

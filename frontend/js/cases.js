@@ -237,6 +237,7 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     incident_description: document.getElementById('nc-description').value,
     dispatch_time:       document.getElementById('nc-dispatch-time').value || null,
     ambulance_id:        ambulanceSelect.value || null,
+    treatment_centre:    document.getElementById('nc-treatment-centre').value || null,
     paramedic_ids:       ncSelectedParamedics.map(p => parseInt(p.id)),
   };
 
@@ -348,6 +349,7 @@ function populateDispatch(c) {
     document.getElementById('saved-dispatch-time').textContent = c.dispatch_time;
     document.getElementById('saved-ambulance').textContent =
       c.ambulance_code ? `${c.ambulance_code} — ${c.vehicle_name}` : '—';
+    document.getElementById('saved-treatment-centre').textContent = c.treatment_centre || '—';
     document.getElementById('saved-paramedics').textContent =
       (c.paramedics || []).map(p => `${p.username} (${p.first_name} ${p.last_name})`).join(', ') || '—';
   } else {
@@ -390,10 +392,11 @@ async function saveDispatch() {
   if (!date || !time) { alert('Please fill in date and time.'); return; }
 
   const payload = {
-    dispatch_date: date,
-    dispatch_time: time,
-    ambulance_id:  ambulance || null,
-    paramedic_ids: selectedParamedics.map(p => parseInt(p.id)),
+    dispatch_date:    date,
+    dispatch_time:    time,
+    ambulance_id:     ambulance || null,
+    treatment_centre: document.getElementById('dispatch-treatment-centre').value || null,
+    paramedic_ids:    selectedParamedics.map(p => parseInt(p.id)),
   };
   try {
     await apiFetch(`/api/cases/${currentCaseId}/dispatch`, { method: 'POST', body: JSON.stringify(payload) });

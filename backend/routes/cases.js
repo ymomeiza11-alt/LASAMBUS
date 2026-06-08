@@ -74,7 +74,7 @@ router.post('/', requireLogin, async (req, res) => {
     date_of_incident, time_of_incident,
     notified_by, lga_lcda, incident_type, incident_severity,
     incident_location, incident_description,
-    dispatch_time, ambulance_id, paramedic_ids,
+    dispatch_time, ambulance_id, treatment_centre, paramedic_ids,
   } = req.body;
 
   const today       = date_of_incident  || new Date().toISOString().slice(0, 10);
@@ -94,14 +94,14 @@ router.post('/', requireLogin, async (req, res) => {
          (date_of_incident, time_of_incident,
           notified_by, lga_lcda, incident_type, incident_severity,
           incident_location, incident_description,
-          dispatch_date, dispatch_time, ambulance_id,
+          dispatch_date, dispatch_time, ambulance_id, treatment_centre,
           response_time_mins, case_status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
       [
         today, incidentTime,
         notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
         incident_location || null, incident_description || null,
-        dispatchDate, dispatch_time || null, ambulance_id || null,
+        dispatchDate, dispatch_time || null, ambulance_id || null, treatment_centre || null,
         responseMins,
         req.session.userId,
       ]
@@ -191,7 +191,7 @@ router.put('/:id', requireLogin, async (req, res) => {
 // ── Dispatch ──────────────────────────────────────────
 // POST /api/cases/:id/dispatch
 router.post('/:id/dispatch', requireLogin, async (req, res) => {
-  const { dispatch_date, dispatch_time, ambulance_id, paramedic_ids } = req.body;
+  const { dispatch_date, dispatch_time, ambulance_id, treatment_centre, paramedic_ids } = req.body;
   if (!dispatch_date || !dispatch_time) return res.status(400).json({ error: 'dispatch_date and dispatch_time required' });
 
   const conn = await pool.getConnection();
@@ -211,8 +211,8 @@ router.post('/:id/dispatch', requireLogin, async (req, res) => {
 
     await conn.query(
       `UPDATE cases SET dispatch_date = ?, dispatch_time = ?, ambulance_id = ?,
-                        response_time_mins = ? WHERE case_id = ?`,
-      [dispatch_date, dispatch_time, ambulance_id || null, responseMins, req.params.id]
+                        treatment_centre = ?, response_time_mins = ? WHERE case_id = ?`,
+      [dispatch_date, dispatch_time, ambulance_id || null, treatment_centre || null, responseMins, req.params.id]
     );
 
     if (ambulance_id) {
