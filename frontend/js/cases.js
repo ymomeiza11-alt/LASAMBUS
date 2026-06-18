@@ -415,6 +415,21 @@ function populateArrival(c) {
     document.getElementById('saved-arrival-date').textContent = formatDate(c.arrival_date);
     document.getElementById('saved-arrival-time').textContent = c.arrival_time;
     document.getElementById('saved-situation').textContent    = c.situation_on_arrival || '—';
+
+    const collapsedRow = document.getElementById('saved-collapsed-row');
+    const descRow      = document.getElementById('saved-desc-collapsed-row');
+    if (c.collapsed_buildings != null) {
+      document.getElementById('saved-collapsed-buildings').textContent = c.collapsed_buildings;
+      collapsedRow.classList.remove('hidden');
+    } else {
+      collapsedRow.classList.add('hidden');
+    }
+    if (c.desc_collapsed_buildings) {
+      document.getElementById('saved-desc-collapsed').textContent = c.desc_collapsed_buildings;
+      descRow.classList.remove('hidden');
+    } else {
+      descRow.classList.add('hidden');
+    }
   } else {
     document.getElementById('arrival-form').classList.remove('hidden');
     document.getElementById('arrival-saved').classList.add('hidden');
@@ -422,19 +437,33 @@ function populateArrival(c) {
     const pad = n => String(n).padStart(2, '0');
     document.getElementById('arrival-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     document.getElementById('arrival-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    document.getElementById('arrival-collapsed-buildings').value = '';
+    document.getElementById('arrival-desc-collapsed').value = '';
+    document.getElementById('arrival-situation').value = '';
+    document.getElementById('arrival-situation-other').classList.add('hidden');
+    document.getElementById('arrival-situation-other').value = '';
   }
 }
 
 async function saveArrival() {
   const date      = document.getElementById('arrival-date').value;
   const time      = document.getElementById('arrival-time').value;
-  const situation = document.getElementById('arrival-situation').value;
-  if (!date || !time || !situation) { alert('Please fill in all arrival fields.'); return; }
+  const situation = getOtherValue('arrival-situation', 'arrival-situation-other');
+  if (!date || !time || !situation) { alert('Please fill in all required arrival fields.'); return; }
+
+  const collapsedVal = document.getElementById('arrival-collapsed-buildings').value;
+  const descVal      = document.getElementById('arrival-desc-collapsed').value.trim();
 
   try {
     await apiFetch(`/api/cases/${currentCaseId}/arrival`, {
       method: 'POST',
-      body: JSON.stringify({ arrival_date: date, arrival_time: time, situation_on_arrival: situation }),
+      body: JSON.stringify({
+        arrival_date:            date,
+        arrival_time:            time,
+        situation_on_arrival:    situation,
+        collapsed_buildings:     collapsedVal !== '' ? parseInt(collapsedVal) : null,
+        desc_collapsed_buildings: descVal || null,
+      }),
     });
     await loadCaseDetail(currentCaseId);
     loadCases();

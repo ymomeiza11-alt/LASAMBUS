@@ -261,7 +261,7 @@ html, body { height: 100%; }
   align-items: center;
   justify-content: center;
   font-size: 0.78rem;
-  padding: 0 16px;
+  padding: 10px 16px;
 }
 
 /* ══════════════════════════════════════════════
@@ -959,28 +959,43 @@ input[type="checkbox"] {
 }
 
 /* ══════════════════════════════════════════════
+   Report KPI Sections
+══════════════════════════════════════════════ */
+.report-kpi-section { margin-bottom: 20px; }
+
+.report-kpi-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
+}
+
+.report-kpi-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e4e8ef;
+}
+
+/* ══════════════════════════════════════════════
    Report Metrics Grid
 ══════════════════════════════════════════════ */
 .report-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
-
-/* First 2 cards: half-width each; last 3: one-third each */
-.report-metrics-grid .report-metric-card:nth-child(-n+2) { grid-column: span 3; }
-.report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 2; }
 
 @media (max-width: 900px) {
   .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
-  .report-metrics-grid .report-metric-card:nth-child(-n+2),
-  .report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 1; }
 }
 @media (max-width: 560px) {
   .report-metrics-grid { grid-template-columns: 1fr; }
-  .report-metrics-grid .report-metric-card:nth-child(-n+2),
-  .report-metrics-grid .report-metric-card:nth-child(n+3)  { grid-column: span 1; }
 }
 
 .report-metric-card {
@@ -1029,12 +1044,18 @@ input[type="checkbox"] {
   opacity: 0.72;
 }
 
-.rm-blue  { background: #e8f0fe; color: #1a3c8f; }
-.rm-green { background: #e6f4ea; color: #1e6b3a; }
-.rm-lblue { background: #e0f3ff; color: #0066a4; }
-.rm-red   { background: #fdecea; color: #9c1f1f; }
-.rm-yellow{ background: #fff8e1; color: #7a5800; }
-.rm-dark  { background: #eef0f5; color: #2c3a52; }
+.rm-blue   { background: #e8f0fe; color: #1a3c8f; }
+.rm-green  { background: #e6f4ea; color: #1e6b3a; }
+.rm-lblue  { background: #e0f3ff; color: #0066a4; }
+.rm-red    { background: #fdecea; color: #9c1f1f; }
+.rm-yellow { background: #fff8e1; color: #7a5800; }
+.rm-dark   { background: #eef0f5; color: #2c3a52; }
+.rm-orange { background: #fff3e0; color: #b45309; }
+.rm-purple { background: #f3e8ff; color: #6b21a8; }
+.rm-teal   { background: #e0f7f4; color: #00695c; }
+.rm-rose   { background: #fce7f3; color: #9d174d; }
+.rm-fire   { background: #fff0e6; color: #c2410c; }
+.rm-earth  { background: #efebe9; color: #5d4037; }
 
 /* ══════════════════════════════════════════════
    Horizontal Bar Chart

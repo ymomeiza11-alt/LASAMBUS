@@ -258,7 +258,10 @@ router.post('/:id/dispatch', requireLogin, async (req, res) => {
 // ── Arrival ───────────────────────────────────────────
 // POST /api/cases/:id/arrival
 router.post('/:id/arrival', requireLogin, async (req, res) => {
-  const { arrival_date, arrival_time, situation_on_arrival } = req.body;
+  const {
+    arrival_date, arrival_time, situation_on_arrival,
+    collapsed_buildings, desc_collapsed_buildings,
+  } = req.body;
   if (!arrival_date || !arrival_time) return res.status(400).json({ error: 'arrival_date and arrival_time required' });
 
   const conn = await pool.getConnection();
@@ -266,7 +269,7 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
     await conn.beginTransaction();
 
     const [[caseRow]] = await conn.query(
-      'SELECT dispatch_date, dispatch_time, ambulance_id FROM cases WHERE case_id = ?',
+      'SELECT date_of_incident, time_of_incident, dispatch_date, dispatch_time, ambulance_id FROM cases WHERE case_id = ?',
       [req.params.id]
     );
     if (!caseRow) { await conn.rollback(); return res.status(404).json({ error: 'Case not found' }); }
@@ -276,10 +279,24 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
       arrival_date, arrival_time
     );
 
+    const responseMins = minutesBetween(
+      caseRow.date_of_incident, caseRow.time_of_incident,
+      arrival_date, arrival_time
+    );
+
+    const collapsedVal = (collapsed_buildings !== undefined && collapsed_buildings !== '' && collapsed_buildings !== null)
+      ? parseInt(collapsed_buildings) : null;
+
     await conn.query(
       `UPDATE cases SET arrival_date = ?, arrival_time = ?, situation_on_arrival = ?,
-                        transit_time_mins = ?, case_status = 'Complete' WHERE case_id = ?`,
-      [arrival_date, arrival_time, situation_on_arrival || null, transitMins, req.params.id]
+                        collapsed_buildings = ?, desc_collapsed_buildings = ?,
+                        response_time_mins = ?, transit_time_mins = ?,
+                        case_status = 'Complete' WHERE case_id = ?`,
+      [
+        arrival_date, arrival_time, situation_on_arrival || null,
+        collapsedVal, desc_collapsed_buildings || null,
+        responseMins, transitMins, req.params.id,
+      ]
     );
 
     // Revert ambulance to Available
