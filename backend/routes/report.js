@@ -29,11 +29,21 @@ router.get('/', requireLogin, async (req, res) => {
                THEN response_time_mins END)                        AS avgResponse,
          SUM(incident_type = 'Road Traffic Accident')             AS totalRTAs,
          SUM(incident_type IN (${medPlaceholders}))               AS totalMedical,
-         SUM(incident_type = 'Fire Incident')                     AS totalFire,
-         COALESCE(SUM(collapsed_buildings), 0)                    AS totalCollapsed
+         SUM(incident_type = 'Fire Incident')                     AS totalFire
        FROM cases c WHERE 1=1 ${dateFilter}`,
       [...MEDICAL_TYPES, ...dateVals]
     );
+
+    // Isolated query — safe to fail if migration hasn't been run yet
+    let totalCollapsed = 0;
+    try {
+      const [[colRow]] = await pool.query(
+        `SELECT COALESCE(SUM(collapsed_buildings), 0) AS totalCollapsed
+         FROM cases c WHERE 1=1 ${dateFilter}`,
+        dateVals
+      );
+      totalCollapsed = parseInt(colRow.totalCollapsed) || 0;
+    } catch { /* column not yet migrated — default to 0 */ }
 
     const [[{ totalPatients }]] = await pool.query(
       `SELECT COUNT(*) AS totalPatients
@@ -79,10 +89,10 @@ router.get('/', requireLogin, async (req, res) => {
       avgMonthly,
       totalPatients,
       avgResponse: formatMins(avgResponseMins),
-      totalRTAs:   parseInt(stats.totalRTAs)   || 0,
-      totalMedical: parseInt(stats.totalMedical) || 0,
-      totalFire:   parseInt(stats.totalFire)   || 0,
-      totalCollapsed: parseInt(stats.totalCollapsed) || 0,
+      totalRTAs:      parseInt(stats.totalRTAs)   || 0,
+      totalMedical:   parseInt(stats.totalMedical) || 0,
+      totalFire:      parseInt(stats.totalFire)   || 0,
+      totalCollapsed,
       ambuAvail: `${availableAmbs}/${totalAmbs}`,
       ambuAvailPct,
     });
