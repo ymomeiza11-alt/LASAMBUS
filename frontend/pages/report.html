@@ -27,32 +27,90 @@
         <div id="report-active-filters" class="active-filters hidden" style="margin-top:12px;"></div>
       </div>
 
-      <!-- Summary metrics -->
-      <div class="report-metrics-grid">
-        <div class="report-metric-card rm-blue">
-          <i class="bi bi-folder2-open rm-icon"></i>
-          <div class="rm-value" id="r-total-cases">142</div>
-          <div class="rm-label">Total Cases</div>
+      <!-- Section 1: Case Overview -->
+      <div class="report-kpi-section">
+        <div class="report-kpi-section-header">
+          <i class="bi bi-folder2-open"></i> Case Overview
         </div>
-        <div class="report-metric-card rm-green">
-          <i class="bi bi-graph-up-arrow rm-icon"></i>
-          <div class="rm-value" id="r-success-rate">76%</div>
-          <div class="rm-label">Case Success Rate</div>
+        <div class="report-metrics-grid">
+          <div class="report-metric-card rm-blue">
+            <i class="bi bi-folder2-open rm-icon"></i>
+            <div class="rm-value" id="r-total-cases">—</div>
+            <div class="rm-label">Total Cases</div>
+          </div>
+          <div class="report-metric-card rm-green">
+            <i class="bi bi-check-circle rm-icon"></i>
+            <div class="rm-value" id="r-completed">—</div>
+            <div class="rm-label">Cases Completed</div>
+          </div>
+          <div class="report-metric-card rm-lblue">
+            <i class="bi bi-graph-up-arrow rm-icon"></i>
+            <div class="rm-value" id="r-success-rate">—</div>
+            <div class="rm-label">Case Success Rate</div>
+          </div>
+          <div class="report-metric-card rm-red">
+            <i class="bi bi-x-circle rm-icon"></i>
+            <div class="rm-value" id="r-cancelled">—</div>
+            <div class="rm-label">Total Cancelled</div>
+          </div>
         </div>
-        <div class="report-metric-card rm-lblue">
-          <i class="bi bi-calendar3 rm-icon"></i>
-          <div class="rm-value" id="r-avg-monthly">11.8</div>
-          <div class="rm-label">Avg Cases / Month</div>
+      </div>
+
+      <!-- Section 2: Operational Metrics -->
+      <div class="report-kpi-section">
+        <div class="report-kpi-section-header">
+          <i class="bi bi-activity"></i> Operational
         </div>
-        <div class="report-metric-card rm-red">
-          <i class="bi bi-x-circle rm-icon"></i>
-          <div class="rm-value" id="r-cancelled">18</div>
-          <div class="rm-label">Total Cancelled</div>
+        <div class="report-metrics-grid">
+          <div class="report-metric-card rm-yellow">
+            <i class="bi bi-calendar3 rm-icon"></i>
+            <div class="rm-value" id="r-avg-monthly">—</div>
+            <div class="rm-label">Avg Cases / Month</div>
+          </div>
+          <div class="report-metric-card rm-orange">
+            <i class="bi bi-stopwatch rm-icon"></i>
+            <div class="rm-value" id="r-avg-response">—</div>
+            <div class="rm-label">Avg Response Time</div>
+          </div>
+          <div class="report-metric-card rm-purple">
+            <i class="bi bi-people rm-icon"></i>
+            <div class="rm-value" id="r-total-patients">—</div>
+            <div class="rm-label">Total Patients</div>
+          </div>
+          <div class="report-metric-card rm-teal">
+            <i class="bi bi-truck rm-icon"></i>
+            <div class="rm-value" id="r-ambu-avail">—</div>
+            <div class="rm-label">Ambulance Availability</div>
+          </div>
         </div>
-        <div class="report-metric-card rm-yellow">
-          <i class="bi bi-people rm-icon"></i>
-          <div class="rm-value" id="r-total-patients">107</div>
-          <div class="rm-label">Total Patients</div>
+      </div>
+
+      <!-- Section 3: Incident Breakdown -->
+      <div class="report-kpi-section">
+        <div class="report-kpi-section-header">
+          <i class="bi bi-clipboard-data"></i> Incident Breakdown
+        </div>
+        <div class="report-metrics-grid">
+          <div class="report-metric-card rm-dark">
+            <i class="bi bi-car-front rm-icon"></i>
+            <div class="rm-value" id="r-total-rtas">—</div>
+            <div class="rm-label">Total RTAs</div>
+          </div>
+          <div class="report-metric-card rm-rose">
+            <i class="bi bi-heart-pulse rm-icon"></i>
+            <div class="rm-value" id="r-medical-cases">—</div>
+            <div class="rm-label">Medical Cases</div>
+          </div>
+          <div class="report-metric-card rm-fire">
+            <i class="bi bi-fire rm-icon"></i>
+            <div class="rm-value" id="r-fire-incidents">—</div>
+            <div class="rm-label">Fire Incidents</div>
+          </div>
+          <div class="report-metric-card rm-earth">
+            <i class="bi bi-buildings rm-icon"></i>
+            <div class="rm-value" id="r-collapsed-buildings">—</div>
+            <div class="rm-label">Collapsed Buildings</div>
+          </div>
         </div>
       </div>
 

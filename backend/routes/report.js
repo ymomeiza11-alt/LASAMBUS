@@ -10,15 +10,29 @@ router.get('/', requireLogin, async (req, res) => {
     : '';
   const dateVals = start && end ? [start, end] : [];
 
+  const MEDICAL_TYPES = [
+    'Medical Emergencies',
+    'Obstetric/Gynecological',
+    'Pediatrics',
+    'Behavioural Health',
+    'Elderly Care',
+  ];
+  const medPlaceholders = MEDICAL_TYPES.map(() => '?').join(',');
+
   try {
     const [[stats]] = await pool.query(
       `SELECT
-         COUNT(*) AS totalCases,
-         SUM(case_status = 'Complete')  AS completed,
-         SUM(case_status = 'Cancelled') AS cancelled,
-         AVG(transit_time_mins)         AS avgTransit
+         COUNT(*)                                                   AS totalCases,
+         SUM(case_status = 'Complete')                             AS completed,
+         SUM(case_status = 'Cancelled')                           AS cancelled,
+         AVG(CASE WHEN arrival_time IS NOT NULL
+               THEN response_time_mins END)                        AS avgResponse,
+         SUM(incident_type = 'Road Traffic Accident')             AS totalRTAs,
+         SUM(incident_type IN (${medPlaceholders}))               AS totalMedical,
+         SUM(incident_type = 'Fire Incident')                     AS totalFire,
+         COALESCE(SUM(collapsed_buildings), 0)                    AS totalCollapsed
        FROM cases c WHERE 1=1 ${dateFilter}`,
-      dateVals
+      [...MEDICAL_TYPES, ...dateVals]
     );
 
     const [[{ totalPatients }]] = await pool.query(
@@ -29,11 +43,14 @@ router.get('/', requireLogin, async (req, res) => {
       dateVals
     );
 
-    // Avg monthly = total / number of distinct months in range
     const [[{ monthCount }]] = await pool.query(
       `SELECT COUNT(DISTINCT DATE_FORMAT(date_of_incident, '%Y-%m')) AS monthCount
        FROM cases WHERE date_of_incident IS NOT NULL ${dateFilter.replace('c.', '')}`,
       dateVals
+    );
+
+    const [[ambulanceStats]] = await pool.query(
+      `SELECT COUNT(*) AS total, SUM(status = 'Available') AS available FROM ambulances`
     );
 
     const totalCases  = parseInt(stats.totalCases)  || 0;
@@ -41,9 +58,8 @@ router.get('/', requireLogin, async (req, res) => {
     const cancelled   = parseInt(stats.cancelled)   || 0;
     const successRate = totalCases > 0 ? Math.round((completed / totalCases) * 100) : 0;
     const avgMonthly  = monthCount > 0 ? (totalCases / monthCount).toFixed(1) : '0';
-    const avgTransitMins = stats.avgTransit != null ? Math.round(stats.avgTransit) : null;
 
-    // Format as MM:SS
+    const avgResponseMins = stats.avgResponse != null ? Math.round(stats.avgResponse) : null;
     const formatMins = m => {
       if (m == null) return '—';
       const h = Math.floor(m / 60);
@@ -51,10 +67,24 @@ router.get('/', requireLogin, async (req, res) => {
       return h > 0 ? `${h}h ${min}m` : `${min} min`;
     };
 
+    const totalAmbs    = parseInt(ambulanceStats.total)     || 0;
+    const availableAmbs = parseInt(ambulanceStats.available) || 0;
+    const ambuAvailPct = totalAmbs > 0 ? Math.round((availableAmbs / totalAmbs) * 100) : 0;
+
     res.json({
-      totalCases, completed, cancelled, successRate,
-      avgMonthly, totalPatients,
-      avgTransit: formatMins(avgTransitMins),
+      totalCases,
+      completed,
+      cancelled,
+      successRate,
+      avgMonthly,
+      totalPatients,
+      avgResponse: formatMins(avgResponseMins),
+      totalRTAs:   parseInt(stats.totalRTAs)   || 0,
+      totalMedical: parseInt(stats.totalMedical) || 0,
+      totalFire:   parseInt(stats.totalFire)   || 0,
+      totalCollapsed: parseInt(stats.totalCollapsed) || 0,
+      ambuAvail: `${availableAmbs}/${totalAmbs}`,
+      ambuAvailPct,
     });
   } catch (err) {
     console.error(err);

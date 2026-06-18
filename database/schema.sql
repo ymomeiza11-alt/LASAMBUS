@@ -60,7 +60,9 @@ CREATE TABLE IF NOT EXISTS cases (
   arrival_date        DATE,
   arrival_time        TIME,
   situation_on_arrival VARCHAR(100),
-  response_time_mins  SMALLINT UNSIGNED,    -- dispatch − time_of_incident
+  collapsed_buildings      SMALLINT UNSIGNED DEFAULT NULL,
+  desc_collapsed_buildings TEXT              DEFAULT NULL,
+  response_time_mins  SMALLINT UNSIGNED,    -- arrival − time_of_incident
   transit_time_mins   SMALLINT UNSIGNED,    -- arrival − dispatch
   case_status         ENUM('Active','Complete','Cancelled') NOT NULL DEFAULT 'Active',
   created_by          INT          DEFAULT NULL,

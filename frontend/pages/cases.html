@@ -434,13 +434,26 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Situation on Arrival</label>
-              <select id="arrival-situation">
+              <label>Situation on Arrival <span class="req">*</span></label>
+              <select id="arrival-situation" onchange="handleOtherSelect(this, 'arrival-situation-other')">
                 <option value="">-- Select --</option>
-                <option>Nothing Sighted</option><option>No Victim</option>
-                <option>Corpse</option><option>Live Victim/Treat and Discharge</option>
-                <option>Evacuation</option><option>Not Attended</option>
+                <option>Nothing Sighted</option>
+                <option>No Victim</option>
+                <option>Corpse</option>
+                <option>Live Victim/Treat and Discharge</option>
+                <option>Evacuation</option>
+                <option>Not Attended</option>
+                <option>Other</option>
               </select>
+              <input type="text" id="arrival-situation-other" class="other-text hidden" style="margin-top:8px;" placeholder="Please describe the situation" />
+            </div>
+            <div class="form-group">
+              <label>No. of Collapsed Buildings</label>
+              <input type="number" id="arrival-collapsed-buildings" min="0" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>Description of Collapsed Buildings <span style="color:#888; font-weight:400;">(optional)</span></label>
+              <textarea id="arrival-desc-collapsed" placeholder="Describe the buildings affected..."></textarea>
             </div>
             <button type="button" class="btn btn-primary mt-16" onclick="saveArrival()">Arrived</button>
           </div>
@@ -449,6 +462,8 @@
               <div class="info-row"><span class="info-label">Arrived Date</span><span class="info-value" id="saved-arrival-date">—</span></div>
               <div class="info-row"><span class="info-label">Arrived Time</span><span class="info-value" id="saved-arrival-time">—</span></div>
               <div class="info-row"><span class="info-label">Situation on Arrival</span><span class="info-value" id="saved-situation">—</span></div>
+              <div class="info-row" id="saved-collapsed-row"><span class="info-label">Collapsed Buildings</span><span class="info-value" id="saved-collapsed-buildings">—</span></div>
+              <div class="info-row" id="saved-desc-collapsed-row"><span class="info-label">Buildings Description</span><span class="info-value" id="saved-desc-collapsed">—</span></div>
             </div>
           </div>
         </div>

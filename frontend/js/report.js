@@ -8,11 +8,21 @@ async function loadReport() {
 
   try {
     const data = await apiFetch(`/api/report?${params}`);
-    document.getElementById('r-total-cases').textContent    = data.totalCases;
-    document.getElementById('r-success-rate').textContent   = data.successRate + '%';
-    document.getElementById('r-avg-monthly').textContent    = data.avgMonthly;
-    document.getElementById('r-cancelled').textContent      = data.cancelled;
-    document.getElementById('r-total-patients').textContent = data.totalPatients;
+
+    document.getElementById('r-total-cases').textContent        = data.totalCases;
+    document.getElementById('r-completed').textContent          = data.completed;
+    document.getElementById('r-success-rate').textContent       = data.successRate + '%';
+    document.getElementById('r-cancelled').textContent          = data.cancelled;
+
+    document.getElementById('r-avg-monthly').textContent        = data.avgMonthly;
+    document.getElementById('r-avg-response').textContent       = data.avgResponse;
+    document.getElementById('r-total-patients').textContent     = data.totalPatients;
+    document.getElementById('r-ambu-avail').textContent         = data.ambuAvail;
+
+    document.getElementById('r-total-rtas').textContent         = data.totalRTAs;
+    document.getElementById('r-medical-cases').textContent      = data.totalMedical;
+    document.getElementById('r-fire-incidents').textContent     = data.totalFire;
+    document.getElementById('r-collapsed-buildings').textContent = data.totalCollapsed;
   } catch (err) {
     console.error('Report load error:', err);
   }
