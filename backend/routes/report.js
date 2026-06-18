@@ -11,6 +11,7 @@ router.get('/', requireLogin, async (req, res) => {
   const dateVals = start && end ? [start, end] : [];
 
   const MEDICAL_TYPES = [
+    'Trauma',
     'Medical Emergencies',
     'Obstetric/Gynecological',
     'Pediatrics',
