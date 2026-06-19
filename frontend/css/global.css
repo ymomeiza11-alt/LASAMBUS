@@ -978,14 +978,19 @@ input[type="checkbox"] {
   align-items: stretch;
 }
 
-/* Incident card stretches and distributes list items evenly */
-.report-bottom-row > .card:first-child {
+/* Both cards fill equal height; inner content fills the card */
+.report-bottom-row > .card {
   display: flex;
   flex-direction: column;
 }
-.report-bottom-row > .card:first-child .report-incident-list {
+.report-bottom-row .report-incident-list {
   flex: 1;
   justify-content: space-between;
+}
+.report-bottom-row .report-ops-grid {
+  flex: 1;
+  grid-auto-rows: 1fr;
+  align-content: stretch;
 }
 
 .report-kpi-section-header {
