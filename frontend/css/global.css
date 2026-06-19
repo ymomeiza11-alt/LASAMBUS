@@ -963,27 +963,19 @@ input[type="checkbox"] {
 /* ══════════════════════════════════════════════
    Report — main two-column layout
 ══════════════════════════════════════════════ */
-.report-main-grid {
+/* Outer layout: stacked vertically */
+.report-kpi-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Bottom row: Incident Breakdown + Operational side by side */
+.report-bottom-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  align-items: stretch;
-}
-
-.report-right-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Cases panel stretches to fill the full left column height */
-.report-cases-panel {
-  display: flex;
-  flex-direction: column;
-}
-.report-cases-panel .report-cases-grid {
-  flex: 1;
-  grid-auto-rows: 1fr;
+  align-items: start;
 }
 
 .report-kpi-section-header {
@@ -1192,8 +1184,8 @@ input[type="checkbox"] {
 }
 
 /* ── Responsive ── */
-@media (max-width: 1024px) {
-  .report-main-grid { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .report-bottom-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
   .report-cases-grid { grid-template-columns: 1fr; }
