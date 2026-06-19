@@ -970,12 +970,22 @@ input[type="checkbox"] {
   gap: 20px;
 }
 
-/* Bottom row: Incident Breakdown + Operational side by side */
+/* Bottom row: Incident Breakdown + Operational side by side, equal height */
 .report-bottom-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
+}
+
+/* Incident card stretches and distributes list items evenly */
+.report-bottom-row > .card:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.report-bottom-row > .card:first-child .report-incident-list {
+  flex: 1;
+  justify-content: space-between;
 }
 
 .report-kpi-section-header {
