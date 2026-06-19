@@ -1,6 +1,7 @@
-const router           = require('express').Router();
-const { pool }         = require('../config/db');
-const { requireLogin } = require('../middleware/auth');
+const router              = require('express').Router();
+const { pool }            = require('../config/db');
+const { requireLogin }    = require('../middleware/auth');
+const { notifyMany }      = require('../utils/notify');
 
 // ── Helpers ───────────────────────────────────────────
 function minutesBetween(date1, time1, date2, time2) {
@@ -125,6 +126,18 @@ router.post('/', requireLogin, async (req, res) => {
     }
 
     await conn.commit();
+
+    if (Array.isArray(paramedic_ids) && paramedic_ids.length && dispatch_time) {
+      try {
+        await notifyMany(
+          paramedic_ids.map(Number), 'dispatch',
+          `Dispatched to Case #${caseId}`,
+          `You have been dispatched to Case #${caseId}. Please check the case details and respond immediately.`,
+          caseId
+        );
+      } catch { /* non-critical */ }
+    }
+
     res.status(201).json({ case_id: caseId });
   } catch (err) {
     await conn.rollback();
@@ -245,6 +258,19 @@ router.post('/:id/dispatch', requireLogin, async (req, res) => {
     }
 
     await conn.commit();
+
+    if (Array.isArray(paramedic_ids) && paramedic_ids.length) {
+      const caseId = parseInt(req.params.id);
+      try {
+        await notifyMany(
+          paramedic_ids.map(Number), 'dispatch',
+          `Dispatched to Case #${caseId}`,
+          `You have been dispatched to Case #${caseId}. Please check the case details and respond immediately.`,
+          caseId
+        );
+      } catch { /* non-critical */ }
+    }
+
     res.json({ ok: true, response_time_mins: responseMins });
   } catch (err) {
     await conn.rollback();
@@ -321,6 +347,20 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
     }
 
     await conn.commit();
+
+    if (pmeds.length) {
+      const caseId = parseInt(req.params.id);
+      const pmedIds = pmeds.map(r => r.user_id);
+      try {
+        await notifyMany(
+          pmedIds, 'case_complete',
+          `Case #${caseId} Completed`,
+          `Case #${caseId} has been marked as complete.`,
+          caseId
+        );
+      } catch { /* non-critical */ }
+    }
+
     res.json({ ok: true, transit_time_mins: transitMins });
   } catch (err) {
     await conn.rollback();
