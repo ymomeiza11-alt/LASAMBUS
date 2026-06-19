@@ -967,13 +967,23 @@ input[type="checkbox"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .report-right-col {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Cases panel stretches to fill the full left column height */
+.report-cases-panel {
+  display: flex;
+  flex-direction: column;
+}
+.report-cases-panel .report-cases-grid {
+  flex: 1;
+  grid-auto-rows: 1fr;
 }
 
 .report-kpi-section-header {
