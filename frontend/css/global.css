@@ -960,7 +960,21 @@ input[type="checkbox"] {
 /* ══════════════════════════════════════════════
    Report KPI Sections
 ══════════════════════════════════════════════ */
-.report-kpi-section { margin-bottom: 20px; }
+/* ══════════════════════════════════════════════
+   Report — main two-column layout
+══════════════════════════════════════════════ */
+.report-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.report-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
 .report-kpi-section-header {
   display: flex;
@@ -971,7 +985,7 @@ input[type="checkbox"] {
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .report-kpi-section-header::after {
@@ -981,22 +995,21 @@ input[type="checkbox"] {
   background: #e4e8ef;
 }
 
-/* ══════════════════════════════════════════════
-   Report Metrics Grid
-══════════════════════════════════════════════ */
-.report-metrics-grid {
+/* ── Cases overview grid (2×2, large) ── */
+.report-cases-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
-@media (max-width: 900px) {
-  .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 560px) {
-  .report-metrics-grid { grid-template-columns: 1fr; }
+/* ── Operational grid (2×2) ── */
+.report-ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
+/* ── Base metric card ── */
 .report-metric-card {
   background: #fff;
   border-radius: 14px;
@@ -1016,6 +1029,11 @@ input[type="checkbox"] {
   box-shadow: 0 8px 28px rgba(0,0,0,0.12);
 }
 
+/* Cases grid cards — bigger */
+.report-cases-grid .report-metric-card {
+  padding: 28px 24px 24px;
+}
+
 /* Icon badge */
 .rm-badge {
   width: 44px;
@@ -1030,12 +1048,25 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 
+/* Larger badge for cases cards */
+.report-cases-grid .rm-badge {
+  width: 52px;
+  height: 52px;
+  font-size: 1.5rem;
+  border-radius: 13px;
+}
+
 .rm-value {
   font-size: 2.4rem;
   font-weight: 800;
   line-height: 1;
-  color: #1a1f36;
+  color: var(--rm-color, #3b6ce8);
   letter-spacing: -0.02em;
+}
+
+/* Cases cards get even bigger numbers */
+.report-cases-grid .rm-value {
+  font-size: 3.6rem;
 }
 
 .rm-label {
@@ -1043,16 +1074,17 @@ input[type="checkbox"] {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #8896a5;
+  color: var(--rm-color, #3b6ce8);
+  opacity: 0.65;
 }
 
-/* ── Ring cards (Success Rate, Ambulance) ── */
+/* ── Ring cards ── */
 .rm-ring-card { gap: 8px; }
 
 .rm-ring-card .rm-badge {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   width: 36px;
   height: 36px;
   font-size: 1rem;
@@ -1070,6 +1102,11 @@ input[type="checkbox"] {
   height: 84px;
   transform: rotate(-90deg);
 }
+
+/* Bigger ring inside cases grid */
+.report-cases-grid .rm-ring-wrap { width: 108px; height: 108px; }
+.report-cases-grid .rm-ring-svg  { width: 108px; height: 108px; }
+
 .rm-ring-track {
   fill: none;
   stroke: #eef0f5;
@@ -1092,13 +1129,65 @@ input[type="checkbox"] {
   justify-content: center;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #1a1f36;
+  color: var(--rm-color, #3b6ce8);
 }
+.report-cases-grid .rm-ring-center { font-size: 1.35rem; }
+
 .rm-ring-sub {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: #1a1f36;
+  color: var(--rm-color, #14b8a6);
   margin-top: -4px;
+}
+
+/* ── Incident breakdown list ── */
+.report-incident-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rm-incident-item {
+  background: var(--rm-bg);
+  color: var(--rm-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: filter 0.15s;
+}
+.rm-incident-item:hover { filter: brightness(0.96); }
+
+.rm-incident-item .rm-badge {
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.55);
+  flex-shrink: 0;
+}
+
+.rm-incident-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.rm-incident-value {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .report-main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .report-cases-grid { grid-template-columns: 1fr; }
+  .report-ops-grid   { grid-template-columns: 1fr; }
 }
 
 /* ══════════════════════════════════════════════
