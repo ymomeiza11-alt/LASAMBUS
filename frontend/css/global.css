@@ -15,7 +15,7 @@
   --sidebar-width: 220px;
   --sidebar-collapsed-width: 60px;
   --header-height: 60px;
-  --footer-height: 44px;
+  --footer-height: 56px;
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
   --shadow-card-hover: 0 4px 10px rgba(0,0,0,0.09), 0 14px 32px rgba(0,0,0,0.1);
   --shadow-overlay: -4px 0 32px rgba(0,0,0,0.18);
@@ -261,7 +261,6 @@ html, body { height: 100%; }
   align-items: center;
   justify-content: center;
   font-size: 0.78rem;
-  padding: 10px 16px;
 }
 
 /* ══════════════════════════════════════════════
