@@ -1054,50 +1054,43 @@ input[type="checkbox"] {
   justify-content: flex-end;
 }
 
-/* Gradient card — colored background, white text */
-.rm-grad-card {
-  background: linear-gradient(140deg, var(--rm-color) 0%, var(--rm-grad, var(--rm-color)) 100%);
-  border-left: none;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+/* Hero card — white bg, large floating icon top-right, big colored number */
+.rm-hero-card {
+  background: #fff;
+  justify-content: flex-end;
+  min-height: 210px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 8px 28px rgba(0,0,0,0.07);
 }
-.rm-grad-card:hover {
-  box-shadow: 0 12px 36px rgba(0,0,0,0.26);
+.rm-hero-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.13);
 }
-.rm-grad-card .rm-badge {
-  background: rgba(255,255,255,0.22);
-  color: #fff;
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-.rm-grad-card .rm-value { color: #fff; }
-.rm-grad-card .rm-label { color: rgba(255,255,255,0.78); opacity: 1; }
 
-/* Decorative large background icon */
-.rm-card-deco {
+/* Large icon floated top-right */
+.rm-hero-icon {
   position: absolute;
-  right: -14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 130px;
-  color: #fff;
-  opacity: 0.1;
+  top: 16px;
+  right: 18px;
+  font-size: 3.2rem;
+  color: var(--rm-color);
+  background: var(--rm-bg);
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  pointer-events: none;
-  user-select: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
 }
 
-/* Ring card on gradient background */
-.rm-grad-card.rm-ring-card .rm-badge {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  left: auto;
+/* Ring card adjustments for hero layout */
+.rm-hero-card.rm-ring-card {
+  justify-content: flex-end;
 }
-.rm-grad-card .rm-ring-track  { stroke: rgba(255,255,255,0.25); }
-.rm-grad-card .rm-ring-fill   { stroke: #fff; }
-.rm-grad-card .rm-ring-center { color: #fff; font-size: 1.25rem; }
+.rm-hero-card .rm-ring-track  { stroke: #eef0f5; }
+.rm-hero-card .rm-ring-fill   { stroke: var(--rm-color); }
+.rm-hero-card .rm-ring-center { color: var(--rm-color); font-size: 1.25rem; }
 
 /* Icon badge */
 .rm-badge {
