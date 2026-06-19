@@ -13,7 +13,78 @@ document.addEventListener('componentsReady', e => {
   if (u.is_admin) {
     document.getElementById('change-password-card').classList.remove('hidden');
   }
+
+  loadNotifFeed();
 });
+
+async function loadNotifFeed() {
+  const body = document.getElementById('notif-feed-body');
+  if (!body) return;
+  try {
+    const data = await fetch('/api/notifications').then(r => r.ok ? r.json() : []);
+    if (!data.length) {
+      body.innerHTML = `<div class="notif-empty">No notifications yet</div>`;
+      return;
+    }
+
+    const groups = groupNotifsByDate(data);
+    body.innerHTML = groups.map(g => `
+      <div class="notif-date-group">
+        <div class="notif-date-label">${escHtml(g.label)}</div>
+        ${g.items.map(n => {
+          const caseBtn = n.case_id
+            ? `<button class="notif-open-case-btn" onclick="openCaseFromNotif(${n.case_id}, ${n.notification_id})">Open Case</button>`
+            : '';
+          return `
+            <div class="notif-feed-item ${n.is_read ? '' : 'unread'}" data-id="${n.notification_id}"
+                 onclick="markNotifRead(${n.notification_id}, this); this.classList.remove('unread')">
+              <div class="notif-feed-item-title">${escHtml(n.title)}</div>
+              <div class="notif-feed-item-msg">${escHtml(n.message)}</div>
+              <div class="notif-feed-item-meta">
+                <span class="notif-feed-item-time">${formatNotifAbsTime(n.created_at)}</span>
+                ${caseBtn}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`).join('');
+  } catch {
+    body.innerHTML = `<div class="notif-empty">Could not load notifications</div>`;
+  }
+}
+
+function groupNotifsByDate(notifications) {
+  const groups = [];
+  const seen   = new Map();
+  const now    = new Date();
+  const today     = toDateStr(now);
+  const yesterday = toDateStr(new Date(now - 86400000));
+
+  for (const n of notifications) {
+    const d   = new Date(n.created_at);
+    const key = toDateStr(d);
+    let label;
+    if (key === today)         label = 'Today';
+    else if (key === yesterday) label = 'Yesterday';
+    else {
+      const diffDays = Math.floor((now - d) / 86400000);
+      if (diffDays < 7) label = d.toLocaleDateString('en-GB', { weekday: 'long' });
+      else              label = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    if (!seen.has(label)) { seen.set(label, []); groups.push({ label, items: seen.get(label) }); }
+    seen.get(label).push(n);
+  }
+  return groups;
+}
+
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatNotifAbsTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
 
 document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
   e.preventDefault();

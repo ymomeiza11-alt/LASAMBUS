@@ -15,6 +15,10 @@ async function injectComponents() {
   const header = `
     <header class="lasambus-header">
       <div class="header-right">
+        <button class="header-icon-btn notif-bell-btn" id="notifBellBtn" title="Notifications" onclick="toggleNotifPanel()">
+          <i class="bi bi-bell"></i>
+          <span class="notif-badge hidden" id="notifBadge">0</span>
+        </button>
         <a href="profile.html" class="header-icon-btn" title="Profile">
           <i class="bi bi-person-circle"></i>
         </a>
@@ -171,9 +175,12 @@ async function injectComponents() {
     });
   }
 
+  injectNotifPanel();
+  injectToastContainer();
   startClock();
   initSidebar();
   setActiveSidebarLink();
+  initNotifications();
 
   // Fire a custom event so page scripts know components are ready
   document.dispatchEvent(new CustomEvent('componentsReady', { detail: window.__currentUser }));
@@ -261,6 +268,172 @@ function closeExportOverlay() {
 
 function handleRangeChange(value) {
   document.getElementById('custom-range-group').classList.toggle('hidden', value !== 'custom');
+}
+
+// ── Notifications ─────────────────────────────────────
+let _seenNotifIds = null;
+let _notifPanelOpen = false;
+
+function injectNotifPanel() {
+  if (document.getElementById('notif-panel')) return;
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="notif-panel" id="notif-panel">
+      <div class="notif-panel-header">
+        <span>Notifications</span>
+        <button class="notif-mark-all-btn" onclick="markAllNotifsRead()">Mark all read</button>
+      </div>
+      <div class="notif-list" id="notif-list"></div>
+    </div>`);
+
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('notif-panel');
+    const bell  = document.getElementById('notifBellBtn');
+    if (panel && !panel.contains(e.target) && bell && !bell.contains(e.target)) {
+      panel.classList.remove('open');
+      _notifPanelOpen = false;
+    }
+  });
+}
+
+function injectToastContainer() {
+  if (document.getElementById('notif-toast-container')) return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="notif-toast-container" id="notif-toast-container"></div>`);
+}
+
+async function initNotifications() {
+  await pollNotifications();
+  setInterval(pollNotifications, 30000);
+}
+
+async function pollNotifications() {
+  try {
+    const data = await fetch('/api/notifications').then(r => r.ok ? r.json() : []);
+    if (!Array.isArray(data)) return;
+
+    const unread = data.filter(n => !n.is_read).length;
+    const badge  = document.getElementById('notifBadge');
+    if (badge) {
+      badge.textContent = unread > 99 ? '99+' : unread;
+      badge.classList.toggle('hidden', unread === 0);
+    }
+
+    if (_seenNotifIds === null) {
+      _seenNotifIds = new Set(data.map(n => n.notification_id));
+    } else {
+      const newOnes = data.filter(n => !_seenNotifIds.has(n.notification_id));
+      newOnes.forEach(n => {
+        _seenNotifIds.add(n.notification_id);
+        if (n.type === 'dispatch') showToast(n);
+      });
+    }
+
+    if (_notifPanelOpen) renderNotifPanel(data.slice(0, 10));
+  } catch { /* silent */ }
+}
+
+function renderNotifPanel(notifications) {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!notifications.length) {
+    list.innerHTML = `<div class="notif-empty">No notifications yet</div>`;
+    return;
+  }
+  list.innerHTML = notifications.map(n => {
+    const time = formatNotifTime(n.created_at);
+    const caseBtn = n.case_id
+      ? `<button class="notif-open-case-btn" onclick="openCaseFromNotif(${n.case_id}, ${n.notification_id})">Open Case</button>`
+      : '';
+    return `
+      <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.notification_id}" onclick="markNotifRead(${n.notification_id}, this)">
+        <div class="notif-item-title">${escHtml(n.title)}</div>
+        <div class="notif-item-msg">${escHtml(n.message)}</div>
+        <div class="notif-item-meta">
+          <span class="notif-item-time">${time}</span>
+          ${caseBtn}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+  _notifPanelOpen = !_notifPanelOpen;
+  panel.classList.toggle('open', _notifPanelOpen);
+  if (_notifPanelOpen) {
+    const data = await fetch('/api/notifications').then(r => r.ok ? r.json() : []);
+    renderNotifPanel(data.slice(0, 10));
+  }
+}
+
+async function markNotifRead(id, el) {
+  if (el && el.classList.contains('unread')) {
+    el.classList.remove('unread');
+    await fetch(`/api/notifications/${id}/read`, { method: 'POST' }).catch(() => {});
+    await pollNotifications();
+  }
+}
+
+async function markAllNotifsRead() {
+  await fetch('/api/notifications/read-all', { method: 'POST' }).catch(() => {});
+  document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+  await pollNotifications();
+}
+
+function openCaseFromNotif(caseId, notifId) {
+  fetch(`/api/notifications/${notifId}/read`, { method: 'POST' }).catch(() => {});
+  const panel = document.getElementById('notif-panel');
+  if (panel) { panel.classList.remove('open'); _notifPanelOpen = false; }
+  if (typeof openCaseModal === 'function') {
+    openCaseModal(caseId);
+  } else {
+    window.location.href = `cases.html?case=${caseId}`;
+  }
+}
+
+function showToast(n) {
+  const container = document.getElementById('notif-toast-container');
+  if (!container) return;
+  const id  = `toast-${n.notification_id}`;
+  const caseBtn = n.case_id
+    ? `<button class="notif-toast-open-btn" onclick="openCaseFromNotif(${n.case_id}, ${n.notification_id}); dismissToast('${id}')">Open Case</button>`
+    : '';
+  container.insertAdjacentHTML('beforeend', `
+    <div class="notif-toast" id="${id}">
+      <div class="notif-toast-title">${escHtml(n.title)}</div>
+      <div class="notif-toast-msg">${escHtml(n.message)}</div>
+      <div class="notif-toast-actions">
+        ${caseBtn}
+        <button class="notif-toast-dismiss-btn" onclick="dismissToast('${id}')">Dismiss</button>
+      </div>
+    </div>`);
+  setTimeout(() => dismissToast(id), 8000);
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function formatNotifTime(ts) {
+  if (!ts) return '';
+  const d   = new Date(ts);
+  const now = new Date();
+  const diffMs  = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1)  return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24)   return `${diffH}h ago`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD === 1)  return 'Yesterday';
+  if (diffD < 7)    return d.toLocaleDateString('en-GB', { weekday: 'long' });
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 document.addEventListener('DOMContentLoaded', injectComponents);

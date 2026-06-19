@@ -46,13 +46,14 @@ app.use(session({
 }));
 
 // ── API routes ────────────────────────────────────────
-app.use('/api/auth',        require('./routes/auth'));
-app.use('/api/cases',       require('./routes/cases'));
-app.use('/api/paramedics',  require('./routes/paramedics'));
-app.use('/api/ambulances',  require('./routes/ambulances'));
-app.use('/api/dashboard',   require('./routes/dashboard'));
-app.use('/api/report',      require('./routes/report'));
-app.use('/api/export',      require('./routes/export'));
+app.use('/api/auth',          require('./routes/auth'));
+app.use('/api/cases',         require('./routes/cases'));
+app.use('/api/paramedics',    require('./routes/paramedics'));
+app.use('/api/ambulances',    require('./routes/ambulances'));
+app.use('/api/dashboard',     require('./routes/dashboard'));
+app.use('/api/report',        require('./routes/report'));
+app.use('/api/export',        require('./routes/export'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // ── Static frontend ───────────────────────────────────
 app.use(express.static(path.join(__dirname, '../frontend')));

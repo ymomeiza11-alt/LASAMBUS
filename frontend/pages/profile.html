@@ -16,58 +16,74 @@
     <main class="lasambus-main">
       <h1 class="page-title">Profile</h1>
 
-      <div class="card" style="max-width:520px;">
-        <div class="info-grid">
-          <div class="info-row">
-            <span class="info-label"><i class="bi bi-person"></i> Username</span>
-            <span class="info-value" id="profile-username">admin</span>
+      <div class="profile-layout">
+        <!-- Left: profile info + change password -->
+        <div class="profile-left">
+          <div class="card">
+            <div class="info-grid">
+              <div class="info-row">
+                <span class="info-label"><i class="bi bi-person"></i> Username</span>
+                <span class="info-value" id="profile-username">admin</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label"><i class="bi bi-person-badge"></i> Full Name</span>
+                <span class="info-value" id="profile-fullname">Mr. Admin User</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+                <span class="info-value" id="profile-email">admin@lasambus.gov.ng</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label"><i class="bi bi-briefcase"></i> Cadre</span>
+                <span class="info-value" id="profile-cadre">Senior Paramedic</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label"><i class="bi bi-award"></i> Grade Level</span>
+                <span class="info-value" id="profile-grade">GL-12</span>
+              </div>
+            </div>
           </div>
-          <div class="info-row">
-            <span class="info-label"><i class="bi bi-person-badge"></i> Full Name</span>
-            <span class="info-value" id="profile-fullname">Mr. Admin User</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
-            <span class="info-value" id="profile-email">admin@lasambus.gov.ng</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label"><i class="bi bi-briefcase"></i> Cadre</span>
-            <span class="info-value" id="profile-cadre">Senior Paramedic</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label"><i class="bi bi-award"></i> Grade Level</span>
-            <span class="info-value" id="profile-grade">GL-12</span>
+
+          <!-- Change Password — shown by profile.js -->
+          <div class="card hidden mt-16" id="change-password-card">
+            <h2 class="section-heading mb-16">Change Password</h2>
+            <form id="changePasswordForm" novalidate>
+              <div class="form-group">
+                <label>Current Password <span class="req">*</span></label>
+                <input type="password" id="cp-current" placeholder="Enter current password" />
+                <span class="error-msg" id="err-cp-current">Current password is required.</span>
+              </div>
+              <div class="form-group">
+                <label>New Password <span class="req">*</span></label>
+                <input type="password" id="cp-new" placeholder="At least 8 characters" />
+                <span class="error-msg" id="err-cp-new">New password must be at least 8 characters.</span>
+              </div>
+              <div class="form-group">
+                <label>Confirm New Password <span class="req">*</span></label>
+                <input type="password" id="cp-confirm" placeholder="Repeat new password" />
+                <span class="error-msg" id="err-cp-confirm">Passwords do not match.</span>
+              </div>
+              <div id="cp-server-error" class="error-msg" style="margin-bottom:12px;"></div>
+              <div id="cp-success" class="hidden" style="color:#1e6b3a;font-size:0.9rem;margin-bottom:12px;">
+                <i class="bi bi-check-circle"></i> Password updated successfully.
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-lock"></i> Update Password
+              </button>
+            </form>
           </div>
         </div>
-      </div>
 
-      <!-- Change Password — admin only, shown by profile.js -->
-      <div class="card hidden" id="change-password-card" style="max-width:520px;">
-        <h2 class="section-heading mb-16">Change Password</h2>
-        <form id="changePasswordForm" novalidate>
-          <div class="form-group">
-            <label>Current Password <span class="req">*</span></label>
-            <input type="password" id="cp-current" placeholder="Enter current password" />
-            <span class="error-msg" id="err-cp-current">Current password is required.</span>
+        <!-- Right: notification feed -->
+        <div class="card notif-feed-panel profile-right">
+          <div class="flex justify-between align-center mb-16">
+            <h2 class="notif-feed-title" style="margin-bottom:0;"><i class="bi bi-bell"></i> Notifications</h2>
+            <button class="notif-mark-all-btn" onclick="markAllNotifsRead(); loadNotifFeed()">Mark all read</button>
           </div>
-          <div class="form-group">
-            <label>New Password <span class="req">*</span></label>
-            <input type="password" id="cp-new" placeholder="At least 8 characters" />
-            <span class="error-msg" id="err-cp-new">New password must be at least 8 characters.</span>
+          <div id="notif-feed-body">
+            <div class="notif-empty">Loading…</div>
           </div>
-          <div class="form-group">
-            <label>Confirm New Password <span class="req">*</span></label>
-            <input type="password" id="cp-confirm" placeholder="Repeat new password" />
-            <span class="error-msg" id="err-cp-confirm">Passwords do not match.</span>
-          </div>
-          <div id="cp-server-error" class="error-msg" style="margin-bottom:12px;"></div>
-          <div id="cp-success" class="hidden" style="color:#1e6b3a;font-size:0.9rem;margin-bottom:12px;">
-            <i class="bi bi-check-circle"></i> Password updated successfully.
-          </div>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-lock"></i> Update Password
-          </button>
-        </form>
+        </div>
       </div>
     </main>
 

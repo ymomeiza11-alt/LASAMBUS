@@ -2,6 +2,7 @@ const router            = require('express').Router();
 const bcrypt            = require('bcryptjs');
 const { pool }          = require('../config/db');
 const { requireLogin, requireAdmin } = require('../middleware/auth');
+const { notify }        = require('../utils/notify');
 
 // GET /api/paramedics — list all
 router.get('/', requireLogin, async (req, res) => {
@@ -103,8 +104,21 @@ router.put('/:id', requireLogin, async (req, res) => {
 
     if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
 
+    const adminGranted = isAdmin && makeAdmin === true;
+
     values.push(targetId);
     await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE user_id = ?`, values);
+
+    if (isAdmin && !isSelf) {
+      if (adminGranted) {
+        notify(targetId, 'admin_granted', 'Admin Access Granted',
+          'You have been granted admin access by an administrator.').catch(() => {});
+      } else {
+        notify(targetId, 'info_change', 'Your Profile Was Updated',
+          'An administrator has updated your profile information.').catch(() => {});
+      }
+    }
+
     res.json({ ok: true });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Email already in use' });
@@ -131,6 +145,8 @@ router.post('/:id/password', requireAdmin, async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 12);
     await pool.query('UPDATE users SET password_hash = ? WHERE user_id = ?', [hash, req.params.id]);
+    notify(parseInt(req.params.id), 'password_change', 'Your Password Was Changed',
+      `An administrator has changed your password. Your new password is: ${password}`).catch(() => {});
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
