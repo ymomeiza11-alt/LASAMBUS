@@ -985,7 +985,8 @@ input[type="checkbox"] {
 }
 .report-bottom-row .report-incident-list {
   flex: 1;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 10px;
 }
 .report-bottom-row .report-ops-grid {
   flex: 1;
