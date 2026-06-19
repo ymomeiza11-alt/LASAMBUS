@@ -33,23 +33,29 @@
           <i class="bi bi-folder2-open"></i> Case Overview
         </div>
         <div class="report-metrics-grid">
-          <div class="report-metric-card rm-blue">
-            <i class="bi bi-folder2-open rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#3b6ce8;--rm-bg:#dde8fd;">
+            <div class="rm-badge"><i class="bi bi-folder2-open"></i></div>
             <div class="rm-value" id="r-total-cases">—</div>
             <div class="rm-label">Total Cases</div>
           </div>
-          <div class="report-metric-card rm-green">
-            <i class="bi bi-check-circle rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#16a34a;--rm-bg:#dcfce7;">
+            <div class="rm-badge"><i class="bi bi-check-circle"></i></div>
             <div class="rm-value" id="r-completed">—</div>
             <div class="rm-label">Cases Completed</div>
           </div>
-          <div class="report-metric-card rm-lblue">
-            <i class="bi bi-graph-up-arrow rm-icon"></i>
-            <div class="rm-value" id="r-success-rate">—</div>
+          <div class="report-metric-card rm-ring-card" style="--rm-color:#0ea5e9;--rm-bg:#e0f7ff;">
+            <div class="rm-badge"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="rm-ring-wrap">
+              <svg class="rm-ring-svg" viewBox="0 0 64 64">
+                <circle class="rm-ring-track" cx="32" cy="32" r="26"/>
+                <circle class="rm-ring-fill" id="r-success-ring" cx="32" cy="32" r="26"/>
+              </svg>
+              <div class="rm-ring-center" id="r-success-rate">—</div>
+            </div>
             <div class="rm-label">Case Success Rate</div>
           </div>
-          <div class="report-metric-card rm-red">
-            <i class="bi bi-x-circle rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#ef4444;--rm-bg:#fee2e2;">
+            <div class="rm-badge"><i class="bi bi-x-circle"></i></div>
             <div class="rm-value" id="r-cancelled">—</div>
             <div class="rm-label">Total Cancelled</div>
           </div>
@@ -62,24 +68,31 @@
           <i class="bi bi-activity"></i> Operational
         </div>
         <div class="report-metrics-grid">
-          <div class="report-metric-card rm-yellow">
-            <i class="bi bi-calendar3 rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#d97706;--rm-bg:#fef3c7;">
+            <div class="rm-badge"><i class="bi bi-calendar3"></i></div>
             <div class="rm-value" id="r-avg-monthly">—</div>
             <div class="rm-label">Avg Cases / Month</div>
           </div>
-          <div class="report-metric-card rm-orange">
-            <i class="bi bi-stopwatch rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#f97316;--rm-bg:#ffedd5;">
+            <div class="rm-badge"><i class="bi bi-stopwatch"></i></div>
             <div class="rm-value" id="r-avg-response">—</div>
             <div class="rm-label">Avg Response Time</div>
           </div>
-          <div class="report-metric-card rm-purple">
-            <i class="bi bi-people rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#8b5cf6;--rm-bg:#ede9fe;">
+            <div class="rm-badge"><i class="bi bi-people"></i></div>
             <div class="rm-value" id="r-total-patients">—</div>
             <div class="rm-label">Total Patients</div>
           </div>
-          <div class="report-metric-card rm-teal">
-            <i class="bi bi-truck rm-icon"></i>
-            <div class="rm-value" id="r-ambu-avail">—</div>
+          <div class="report-metric-card rm-ring-card" style="--rm-color:#14b8a6;--rm-bg:#ccfbf1;">
+            <div class="rm-badge"><i class="bi bi-truck"></i></div>
+            <div class="rm-ring-wrap">
+              <svg class="rm-ring-svg" viewBox="0 0 64 64">
+                <circle class="rm-ring-track" cx="32" cy="32" r="26"/>
+                <circle class="rm-ring-fill" id="r-ambu-ring" cx="32" cy="32" r="26"/>
+              </svg>
+              <div class="rm-ring-center" id="r-ambu-pct">—</div>
+            </div>
+            <div class="rm-ring-sub" id="r-ambu-avail">—</div>
             <div class="rm-label">Ambulance Availability</div>
           </div>
         </div>
@@ -91,23 +104,23 @@
           <i class="bi bi-clipboard-data"></i> Incident Breakdown
         </div>
         <div class="report-metrics-grid">
-          <div class="report-metric-card rm-dark">
-            <i class="bi bi-car-front rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#475569;--rm-bg:#e2e8f0;">
+            <div class="rm-badge"><i class="bi bi-car-front"></i></div>
             <div class="rm-value" id="r-total-rtas">—</div>
             <div class="rm-label">Total RTAs</div>
           </div>
-          <div class="report-metric-card rm-rose">
-            <i class="bi bi-heart-pulse rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#e11d48;--rm-bg:#ffe4e6;">
+            <div class="rm-badge"><i class="bi bi-heart-pulse"></i></div>
             <div class="rm-value" id="r-medical-cases">—</div>
             <div class="rm-label">Medical Cases</div>
           </div>
-          <div class="report-metric-card rm-fire">
-            <i class="bi bi-fire rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#ea580c;--rm-bg:#fff0e6;">
+            <div class="rm-badge"><i class="bi bi-fire"></i></div>
             <div class="rm-value" id="r-fire-incidents">—</div>
             <div class="rm-label">Fire Incidents</div>
           </div>
-          <div class="report-metric-card rm-earth">
-            <i class="bi bi-buildings rm-icon"></i>
+          <div class="report-metric-card" style="--rm-color:#92400e;--rm-bg:#fde8cc;">
+            <div class="rm-badge"><i class="bi bi-buildings"></i></div>
             <div class="rm-value" id="r-collapsed-buildings">—</div>
             <div class="rm-label">Collapsed Buildings</div>
           </div>

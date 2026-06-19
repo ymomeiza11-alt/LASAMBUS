@@ -9,20 +9,36 @@ async function loadReport() {
   try {
     const data = await apiFetch(`/api/report?${params}`);
 
-    document.getElementById('r-total-cases').textContent        = data.totalCases;
-    document.getElementById('r-completed').textContent          = data.completed;
-    document.getElementById('r-success-rate').textContent       = data.successRate + '%';
-    document.getElementById('r-cancelled').textContent          = data.cancelled;
+    document.getElementById('r-total-cases').textContent         = data.totalCases;
+    document.getElementById('r-completed').textContent           = data.completed;
+    document.getElementById('r-cancelled').textContent           = data.cancelled;
 
-    document.getElementById('r-avg-monthly').textContent        = data.avgMonthly;
-    document.getElementById('r-avg-response').textContent       = data.avgResponse;
-    document.getElementById('r-total-patients').textContent     = data.totalPatients;
-    document.getElementById('r-ambu-avail').textContent         = data.ambuAvail;
+    document.getElementById('r-avg-monthly').textContent         = data.avgMonthly;
+    document.getElementById('r-avg-response').textContent        = data.avgResponse;
+    document.getElementById('r-total-patients').textContent      = data.totalPatients;
 
-    document.getElementById('r-total-rtas').textContent         = data.totalRTAs;
-    document.getElementById('r-medical-cases').textContent      = data.totalMedical;
-    document.getElementById('r-fire-incidents').textContent     = data.totalFire;
+    document.getElementById('r-total-rtas').textContent          = data.totalRTAs;
+    document.getElementById('r-medical-cases').textContent       = data.totalMedical;
+    document.getElementById('r-fire-incidents').textContent      = data.totalFire;
     document.getElementById('r-collapsed-buildings').textContent = data.totalCollapsed;
+
+    // Success rate ring
+    const circ   = 163.4;
+    const pctS   = parseFloat(data.successRate) || 0;
+    document.getElementById('r-success-rate').textContent = pctS + '%';
+    requestAnimationFrame(() => {
+      const ring = document.getElementById('r-success-ring');
+      if (ring) ring.style.strokeDashoffset = circ * (1 - pctS / 100);
+    });
+
+    // Ambulance availability ring
+    const pctA = parseFloat(data.ambuAvailPct) || 0;
+    document.getElementById('r-ambu-avail').textContent = data.ambuAvail;
+    document.getElementById('r-ambu-pct').textContent   = pctA + '%';
+    requestAnimationFrame(() => {
+      const ring = document.getElementById('r-ambu-ring');
+      if (ring) ring.style.strokeDashoffset = circ * (1 - pctA / 100);
+    });
   } catch (err) {
     console.error('Report load error:', err);
   }
