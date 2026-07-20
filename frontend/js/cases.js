@@ -227,7 +227,6 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
 
   const ambulanceSelect = document.getElementById('nc-ambulance');
 
-  // Build payload with defensive checks
   const payload = {
     date_of_incident:     document.getElementById('nc-date').value,
     time_of_incident:     document.getElementById('nc-time').value,
@@ -237,20 +236,22 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     incident_severity:    getOtherValue('nc-severity', 'nc-severity-other'),
     incident_location:    document.getElementById('nc-location').value.trim(),
     incident_description: document.getElementById('nc-description').value.trim(),
-    dispatch_time:        document.getElementById('nc-dispatch-time').value || null,
-    ambulance_id:         ambulanceSelect?.value || null,
-    treatment_centre:     document.getElementById('nc-treatment-centre')?.value || null,
-    paramedic_ids:        ncSelectedParamedics.map(p => parseInt(p.id)).filter(id => !isNaN(id)),
   };
 
-  // Remove null/undefined/empty values that the server might not expect
-  Object.keys(payload).forEach(key => {
-    if (payload[key] === null || payload[key] === undefined || payload[key] === '') {
-      delete payload[key];
-    }
-  });
+  // Only add optional fields if they have real values
+  const dispatchTime = document.getElementById('nc-dispatch-time').value;
+  if (dispatchTime) payload.dispatch_time = dispatchTime;
 
-  console.log('Creating case with payload:', payload);
+  const ambulanceId = ambulanceSelect?.value;
+  if (ambulanceId) payload.ambulance_id = parseInt(ambulanceId);
+
+  const treatmentCentre = document.getElementById('nc-treatment-centre')?.value;
+  if (treatmentCentre) payload.treatment_centre = treatmentCentre;
+
+  const paramedicIds = ncSelectedParamedics.map(p => parseInt(p.id)).filter(id => !isNaN(id));
+  if (paramedicIds.length > 0) payload.paramedic_ids = paramedicIds;
+
+  console.log('Creating case with payload:', JSON.stringify(payload, null, 2));
 
   try {
     const response = await apiFetch('/api/cases', { method: 'POST', body: JSON.stringify(payload) });
@@ -260,9 +261,22 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     loadCases();
     openCaseOverlay(case_id);
   } catch (err) {
-    console.error('Case creation error:', err);
-    const msg = err?.message || err?.statusText || JSON.stringify(err) || 'Unknown server error';
-    alert('Could not create case: ' + msg);
+    console.error('Full error object:', err);
+    // Try to extract as much detail as possible from the error
+    let detail = '';
+    if (err instanceof Response) {
+      detail = `Status: ${err.status} ${err.statusText}`;
+      try {
+        const body = await err.json();
+        detail += ` | Body: ${JSON.stringify(body)}`;
+      } catch { /* not JSON */ }
+    } else if (err && typeof err === 'object') {
+      detail = JSON.stringify(err, Object.getOwnPropertyNames(err), 2);
+    } else {
+      detail = String(err);
+    }
+    console.error('Error detail:', detail);
+    alert('Could not create case. Check browser console for server response.\n' + detail);
   }
 });// ── Case overlay ──────────────────────────────────────
 async function openCaseOverlay(caseId) {
