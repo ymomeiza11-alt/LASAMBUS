@@ -1,37 +1,43 @@
 -- ============================================================
 --  LASAMBUS Test Data
---  5 Paramedics | 30 Cases | 15 Patient Records
+--  6 Users | 30 Cases | 15 Patient Records
 --
---  Assumes:
---    - schema.sql and seed.sql have been run
---    - Existing admin user -> user_id = 1
---    - New paramedics      -> user_id 2-6
---    - New cases           -> case_id 1-30
+--  Clears all existing users then inserts 6 new users:
+--    - 2 Dispatchers     -> user_id 1-2
+--    - 2 Amb. Supervisors -> user_id 3-4
+--    - 2 Admins          -> user_id 5-6
+--    - Cases reference created_by 1-5
 --    - Patient records reference case_ids 1-15
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 5 PARAMEDICS (password for all: password123)
+-- CLEAR & REPLACE USERS (password for all: password123)
 -- ------------------------------------------------------------
+DELETE FROM users;
+ALTER TABLE users AUTO_INCREMENT = 1;
+
 INSERT INTO users
   (username, email, password_hash, title, first_name, last_name,
    cadre, grade_level, is_admin, status)
 VALUES
-  ('amina.okonkwo',     'amina.okonkwo@lasambus.gov.ng',
+  ('choice.okoene',       'choice.okoene@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Miss', 'Amina',     'Okonkwo',  'Emergency Medical Technician', 'GL-07', 0, 'Available'),
-  ('babatunde.adeyemi', 'babatunde.adeyemi@lasambus.gov.ng',
+   'Mrs', 'Choice',     'Okoene',   'Dispatcher',           'GL-01', 0, 'Available'),
+  ('abosede.popoola',     'abosede.popoola@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Mr',   'Babatunde', 'Adeyemi',  'Paramedic',                   'GL-08', 0, 'Available'),
-  ('chidinma.eze',      'chidinma.eze@lasambus.gov.ng',
+   'Mrs', 'Abosede',    'Popoola',  'Dispatcher',           'GL-01', 0, 'Available'),
+  ('amudat.alagangan',    'amudat.alagangan@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Mrs',  'Chidinma',  'Eze',      'Basic Life Support',          'GL-06', 0, 'Available'),
-  ('emeka.nwosu',       'emeka.nwosu@lasambus.gov.ng',
+   'Mrs', 'Amudat',     'Alagangan','Ambulance Supervisor',  'GL-01', 0, 'Available'),
+  ('oluwatoyin.orogbemi', 'oluwatoyin.orogbemi@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Mr',   'Emeka',     'Nwosu',    'Advanced Life Support',       'GL-09', 0, 'Available'),
-  ('fatima.ibrahim',    'fatima.ibrahim@lasambus.gov.ng',
+   'Mrs', 'Oluwatoyin', 'Orogbemi', 'Ambulance Supervisor',  'GL-01', 0, 'Available'),
+  ('opeyemi.adeyemo',     'opeyemi.adeyemo@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Miss', 'Fatima',    'Ibrahim',  'Senior Paramedic',            'GL-10', 0, 'Available');
+   'Mrs', 'Opeyemi',    'Adeyemo',  'Admin',                 'GL-01', 1, 'Available'),
+  ('morufat.balogun',     'morufat.balogun@lasambus.gov.ng',
+   '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
+   'Mrs', 'Morufat',    'Balogun',  'Admin',                 'GL-01', 1, 'Available');
 
 
 -- ------------------------------------------------------------
