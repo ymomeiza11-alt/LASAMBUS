@@ -226,32 +226,45 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
   if (!valid) return;
 
   const ambulanceSelect = document.getElementById('nc-ambulance');
+
+  // Build payload with defensive checks
   const payload = {
-    date_of_incident:    document.getElementById('nc-date').value,
-    time_of_incident:    document.getElementById('nc-time').value,
-    notified_by:         getOtherValue('nc-notified-by', 'nc-notified-by-other'),
-    lga_lcda:            document.getElementById('nc-lga').value,
-    incident_type:       getOtherValue('nc-incident-type', 'nc-incident-type-other'),
-    incident_severity:   getOtherValue('nc-severity', 'nc-severity-other'),
-    incident_location:   document.getElementById('nc-location').value,
-    incident_description: document.getElementById('nc-description').value,
-    dispatch_time:       document.getElementById('nc-dispatch-time').value || null,
-    ambulance_id:        ambulanceSelect.value || null,
-    treatment_centre:    document.getElementById('nc-treatment-centre').value || null,
-    paramedic_ids:       ncSelectedParamedics.map(p => parseInt(p.id)),
+    date_of_incident:     document.getElementById('nc-date').value,
+    time_of_incident:     document.getElementById('nc-time').value,
+    notified_by:          getOtherValue('nc-notified-by', 'nc-notified-by-other'),
+    lga_lcda:             document.getElementById('nc-lga').value,
+    incident_type:        getOtherValue('nc-incident-type', 'nc-incident-type-other'),
+    incident_severity:    getOtherValue('nc-severity', 'nc-severity-other'),
+    incident_location:    document.getElementById('nc-location').value.trim(),
+    incident_description: document.getElementById('nc-description').value.trim(),
+    dispatch_time:        document.getElementById('nc-dispatch-time').value || null,
+    ambulance_id:         ambulanceSelect?.value || null,
+    treatment_centre:     document.getElementById('nc-treatment-centre')?.value || null,
+    paramedic_ids:        ncSelectedParamedics.map(p => parseInt(p.id)).filter(id => !isNaN(id)),
   };
 
+  // Remove null/undefined/empty values that the server might not expect
+  Object.keys(payload).forEach(key => {
+    if (payload[key] === null || payload[key] === undefined || payload[key] === '') {
+      delete payload[key];
+    }
+  });
+
+  console.log('Creating case with payload:', payload);
+
   try {
-    const { case_id } = await apiFetch('/api/cases', { method: 'POST', body: JSON.stringify(payload) });
+    const response = await apiFetch('/api/cases', { method: 'POST', body: JSON.stringify(payload) });
+    console.log('Case created successfully:', response);
+    const case_id = response.case_id;
     closeNewCaseOverlay();
     loadCases();
     openCaseOverlay(case_id);
   } catch (err) {
-    alert('Could not create case: ' + err.message);
+    console.error('Case creation error:', err);
+    const msg = err?.message || err?.statusText || JSON.stringify(err) || 'Unknown server error';
+    alert('Could not create case: ' + msg);
   }
-});
-
-// ── Case overlay ──────────────────────────────────────
+});// ── Case overlay ──────────────────────────────────────
 async function openCaseOverlay(caseId) {
   currentCaseId = caseId;
   document.getElementById('case-overlay').classList.add('open');
