@@ -238,7 +238,6 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     incident_description: document.getElementById('nc-description').value.trim(),
   };
 
-  // Only add optional fields if they have real values
   const dispatchTime = document.getElementById('nc-dispatch-time').value;
   if (dispatchTime) payload.dispatch_time = dispatchTime;
 
@@ -253,30 +252,38 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
 
   console.log('Creating case with payload:', JSON.stringify(payload, null, 2));
 
+  // Use raw fetch to bypass apiFetch's generic error handling
   try {
-    const response = await apiFetch('/api/cases', { method: 'POST', body: JSON.stringify(payload) });
+    const res = await fetch('/api/cases', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    console.log('Response status:', res.status, res.statusText);
+    const responseBody = await res.text();
+    console.log('Response body:', responseBody);
+
+    if (!res.ok) {
+      let errMsg = `Server returned ${res.status} ${res.statusText}`;
+      try {
+        const errJson = JSON.parse(responseBody);
+        errMsg += `\nServer says: ${JSON.stringify(errJson, null, 2)}`;
+      } catch {
+        if (responseBody) errMsg += `\nBody: ${responseBody}`;
+      }
+      throw new Error(errMsg);
+    }
+
+    const response = JSON.parse(responseBody);
     console.log('Case created successfully:', response);
     const case_id = response.case_id;
     closeNewCaseOverlay();
     loadCases();
     openCaseOverlay(case_id);
   } catch (err) {
-    console.error('Full error object:', err);
-    // Try to extract as much detail as possible from the error
-    let detail = '';
-    if (err instanceof Response) {
-      detail = `Status: ${err.status} ${err.statusText}`;
-      try {
-        const body = await err.json();
-        detail += ` | Body: ${JSON.stringify(body)}`;
-      } catch { /* not JSON */ }
-    } else if (err && typeof err === 'object') {
-      detail = JSON.stringify(err, Object.getOwnPropertyNames(err), 2);
-    } else {
-      detail = String(err);
-    }
-    console.error('Error detail:', detail);
-    alert('Could not create case. Check browser console for server response.\n' + detail);
+    console.error('Case creation failed:', err);
+    alert('Could not create case:\n' + (err.message || err));
   }
 });// ── Case overlay ──────────────────────────────────────
 async function openCaseOverlay(caseId) {
