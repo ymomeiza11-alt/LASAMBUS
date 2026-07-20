@@ -93,6 +93,178 @@
     <div id="footer-placeholder"></div>
   </div>
 
+  <!-- ══════════════════════════════════════════
+       NEW CASE OVERLAY
+  ══════════════════════════════════════════ -->
+  <div class="overlay-backdrop" id="new-case-overlay">
+    <div class="overlay-panel">
+      <button class="overlay-back-btn" onclick="closeNewCaseOverlay()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+      <h2 class="page-title">New Case</h2>
+      <p class="section-heading" style="font-weight:500; color:#555; margin-bottom:20px;">
+        Case ID: <strong id="new-case-id-display" style="color:var(--color-dark-blue);">Auto-generated</strong>
+      </p>
+
+      <form id="newCaseForm" novalidate>
+        <!-- Incident Details -->
+        <div class="card" style="margin-bottom:16px;">
+          <h3 class="section-heading mb-16">Incident Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date of Incident</label>
+              <input type="date" id="nc-date" readonly />
+            </div>
+            <div class="form-group">
+              <label>Time of Incident</label>
+              <input type="time" id="nc-time" step="1" readonly />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notified By <span class="req">*</span></label>
+            <select id="nc-notified-by" required onchange="handleOtherSelect(this, 'nc-notified-by-other')">
+              <option value="">-- Select --</option>
+              <option>Call Center</option>
+              <option>Hospital or Healthcare Facility</option>
+              <option>Law Enforcement</option>
+              <option>LATSMA</option>
+              <option>Bystander/Witness</option>
+              <option>Family Member or Caregiver</option>
+              <option>Public Service (School Nurse, Govt Staff, LSNC, Other Govt Agency)</option>
+              <option>Community Organizations (CDA, Red Cross Volunteer, Community Watch Member)</option>
+              <option>Self Initiated (e.g. For Training, Community Event Coverage)</option>
+              <option>Others</option>
+            </select>
+            <input type="text" id="nc-notified-by-other" class="other-text hidden" placeholder="Please specify" />
+            <span class="error-msg" id="err-nc-notified-by">This field is required.</span>
+          </div>
+
+          <div class="form-group">
+            <label>Local Government Area <span class="req">*</span></label>
+            <select id="nc-lga" required>
+              <option value="">-- Select LGA/LCDA --</option>
+              <option>Agege</option><option>Ajeromi-Ifelodun</option><option>Alimosho</option>
+              <option>Amuwo-Odofin</option><option>Apapa</option><option>Badagry</option>
+              <option>Epe</option><option>Eti-Osa</option><option>Ibeju-Lekki</option>
+              <option>Ifako-Ijaiye</option><option>Ikeja</option><option>Ikorodu</option>
+              <option>Kosofe</option><option>Lagos Island</option><option>Lagos Mainland</option>
+              <option>Mushin</option><option>Ojo</option><option>Oshodi-Isolo</option>
+              <option>Somolu</option><option>Surulere</option>
+            </select>
+            <span class="error-msg" id="err-nc-lga">This field is required.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Incident Type <span class="req">*</span></label>
+              <select id="nc-incident-type" required onchange="handleOtherSelect(this, 'nc-incident-type-other')">
+                <option value="">-- Select --</option>
+                <option>Road Traffic Accident</option><option>Trauma</option>
+                <option>Fire Incident</option><option>Medical Emergencies</option>
+                <option>Obstetric/Gynecological</option><option>Pediatrics</option>
+                <option>Environmental</option><option>Behavioural Health</option>
+                <option>Mass Casualty</option><option>Vehicle Extrication</option>
+                <option>Special Events</option><option>Elderly Care</option>
+                <option>Non-Emergency Transport</option><option>Public Assistance</option>
+                <option>Mass Casualty Incident (MCI)</option><option>Hazards/Disasters</option>
+                <option>Others</option>
+              </select>
+              <input type="text" id="nc-incident-type-other" class="other-text hidden" placeholder="Please specify" />
+              <span class="error-msg" id="err-nc-type">This field is required.</span>
+            </div>
+            <div class="form-group">
+              <label>Incident Severity <span class="req">*</span></label>
+              <select id="nc-severity" required onchange="handleOtherSelect(this, 'nc-severity-other')">
+                <option value="">-- Select --</option>
+                <option>Minor</option><option>Moderate</option><option>Major</option>
+                <option>Severe</option><option>Critical</option><option>Other</option>
+              </select>
+              <input type="text" id="nc-severity-other" class="other-text hidden" placeholder="Please specify" />
+              <span class="error-msg" id="err-nc-severity">This field is required.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Incident Location <span class="req">*</span></label>
+            <textarea id="nc-location" placeholder="Full location of the incident" required></textarea>
+            <span class="error-msg" id="err-nc-location">This field is required.</span>
+          </div>
+
+          <div class="form-group">
+            <label>Incident Description <span class="req">*</span></label>
+            <textarea id="nc-description" placeholder="Describe the incident" style="min-height:100px;" required></textarea>
+            <span class="error-msg" id="err-nc-description">This field is required.</span>
+          </div>
+        </div>
+
+        <!-- Dispatch section (optional) -->
+        <div class="card" style="margin-bottom:16px;">
+          <h3 class="section-heading mb-16">Dispatch <span style="font-weight:400; font-size:0.85rem; color:#888;">(Optional — can be done later)</span></h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Dispatch Time</label>
+              <input type="time" id="nc-dispatch-time" step="1" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Select Ambulance</label>
+            <select id="nc-ambulance">
+              <option value="">-- Select Available Ambulance --</option>
+              <option>AMB-001 — Toyota HiAce</option>
+              <option>AMB-002 — Ford Transit</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Treatment Centre</label>
+            <select id="nc-treatment-centre">
+              <option value="">-- Select Treatment Centre --</option>
+              <option>Lagos Island Maternal Hospital (Lagos Island)</option>
+              <option>Ayinke House (Institute of Maternal and Child Health)</option>
+              <option>General Hospital Gbagada</option>
+              <option>Randle General Hospital</option>
+              <option>General Hospital Apapa</option>
+              <option>General Hospital Ikorodu</option>
+              <option>General Hospital Odan</option>
+              <option>General Hospital Ijede</option>
+              <option>General Hospital Ifako-Ijaiye</option>
+              <option>General Hospital Igando</option>
+              <option>General Hospital Amuwo-Odofin</option>
+              <option>General Hospital Ajeromi</option>
+              <option>General Hospital Shomolu</option>
+              <option>General Hospital Harvey Road</option>
+              <option>General Hospital Ibeju-Lekki</option>
+              <option>General Hospital Epe</option>
+              <option>General Hospital Onikan</option>
+              <option>General Hospital Badagry</option>
+              <option>General Hospital Mushin</option>
+              <option>General Hospital Orile-Agege</option>
+              <option>General Hospital Agbowa</option>
+              <option>General Hospital Isolo</option>
+              <option>General Hospital Alimosho</option>
+              <option>General Hospital Imota</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Paramedics</label>
+            <div id="nc-paramedic-list" style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
+            <button type="button" class="btn btn-outline" style="font-size:0.82rem; padding:5px 12px;" onclick="ncAddParamedic()">
+              <i class="bi bi-plus-lg"></i> Add Paramedic
+            </button>
+            <select id="nc-paramedic-dropdown" class="hidden" style="margin-top:8px; max-width:260px;">
+              <option value="">-- Select Paramedic --</option>
+              <option value="jdoe">jdoe — John Doe</option>
+              <option value="asmith">asmith — Alice Smith</option>
+              <option value="bjohnson">bjohnson — Bob Johnson</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit and Open Case</button>
+      </form>
+    </div>
+  </div>
+
   <script src="../js/components.js"></script>
   <script src="../js/dashboard.js"></script>
 </body>
