@@ -71,6 +71,9 @@ router.get('/', requireLogin, async (req, res) => {
 // ── Create case ───────────────────────────────────────
 // POST /api/cases
 router.post('/', requireLogin, async (req, res) => {
+  // ── 1. Log the incoming payload ──────────────────────
+  console.log('📦 New case payload:', JSON.stringify(req.body, null, 2));
+
   const {
     date_of_incident, time_of_incident,
     notified_by, lga_lcda, incident_type, incident_severity,
@@ -78,17 +81,39 @@ router.post('/', requireLogin, async (req, res) => {
     dispatch_time, ambulance_id, treatment_centre, paramedic_ids,
   } = req.body;
 
-  const today       = date_of_incident  || new Date().toISOString().slice(0, 10);
-  const incidentTime = time_of_incident || new Date().toTimeString().slice(0, 8);
-  const dispatchDate = dispatch_time ? today : null;
+  // ── 2. Pad time to HH:MM:SS if needed ──────────────
+  const padTime = (t) => {
+    if (!t) return null;
+    const s = t.trim();
+    return s.length === 5 ? s + ':00' : s;
+  };
 
-  const responseMins = dispatch_time
-    ? minutesBetween(today, incidentTime, today, dispatch_time)
+  const today       = date_of_incident  || new Date().toISOString().slice(0, 10);
+  const incidentTime = padTime(time_of_incident) || new Date().toTimeString().slice(0, 8);
+  const dispatchDate = dispatch_time ? today : null;
+  const paddedDispatch = padTime(dispatch_time);
+
+  const responseMins = paddedDispatch
+    ? minutesBetween(today, incidentTime, today, paddedDispatch)
     : null;
+
+  // ── 3. Log session user ID ──────────────────────────
+  console.log(`👤 Session user_id: ${req.session.user_id} (type: ${typeof req.session.user_id})`);
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
+
+    // ── 4. Log the final values being inserted ────────
+    const insertValues = [
+      today, incidentTime,
+      notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
+      incident_location || null, incident_description || null,
+      dispatchDate, paddedDispatch, ambulance_id || null, treatment_centre || null,
+      responseMins,
+      req.session.user_id || null,   // <── using user_id (not userId)
+    ];
+    console.log('🔍 Inserting with values:', insertValues);
 
     const [result] = await conn.query(
       `INSERT INTO cases
@@ -98,26 +123,26 @@ router.post('/', requireLogin, async (req, res) => {
           dispatch_date, dispatch_time, ambulance_id, treatment_centre,
           response_time_mins, case_status, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
-      [
-        today, incidentTime,
-        notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
-        incident_location || null, incident_description || null,
-        dispatchDate, dispatch_time || null, ambulance_id || null, treatment_centre || null,
-        responseMins,
-        req.session.userId,
-      ]
+      insertValues
     );
 
     const caseId = result.insertId;
+    console.log(`✅ Case inserted with ID: ${caseId}`);
 
+    // ── 5. Update ambulance ────────────────────────────
     if (ambulance_id) {
+      console.log(`🚑 Assigning ambulance ${ambulance_id}`);
       await conn.query(`UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id = ?`, [ambulance_id]);
     }
 
+    // ── 6. Assign paramedics ───────────────────────────
     if (Array.isArray(paramedic_ids) && paramedic_ids.length) {
+      console.log(`👨‍⚕️ Assigning paramedics:`, paramedic_ids);
+      const placeholders = paramedic_ids.map(() => '(?,?)').join(',');
+      const flatParams = paramedic_ids.flatMap(id => [caseId, id]);
       await conn.query(
-        `INSERT IGNORE INTO case_paramedics (case_id, user_id) VALUES ${paramedic_ids.map(() => '(?,?)').join(',')}`,
-        paramedic_ids.flatMap(id => [caseId, id])
+        `INSERT IGNORE INTO case_paramedics (case_id, user_id) VALUES ${placeholders}`,
+        flatParams
       );
       await conn.query(
         `UPDATE users SET status = 'Assigned' WHERE user_id IN (${paramedic_ids.map(() => '?').join(',')})`,
@@ -126,8 +151,10 @@ router.post('/', requireLogin, async (req, res) => {
     }
 
     await conn.commit();
+    console.log(`🎉 Case ${caseId} created successfully`);
 
-    if (Array.isArray(paramedic_ids) && paramedic_ids.length && dispatch_time) {
+    // ── 7. Send notifications ──────────────────────────
+    if (Array.isArray(paramedic_ids) && paramedic_ids.length && paddedDispatch) {
       try {
         await notifyMany(
           paramedic_ids.map(Number), 'dispatch',
@@ -135,14 +162,30 @@ router.post('/', requireLogin, async (req, res) => {
           `You have been dispatched to Case #${caseId}. Please check the case details and respond immediately.`,
           caseId
         );
-      } catch { /* non-critical */ }
+      } catch (notifErr) {
+        console.warn('⚠️ Notification failed (non‑critical):', notifErr.message);
+      }
     }
 
     res.status(201).json({ case_id: caseId });
+
   } catch (err) {
     await conn.rollback();
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    // ── 8. Detailed error logging ──────────────────────
+    console.error('❌ Case creation ERROR:');
+    console.error('  Message:', err.message);
+    console.error('  Stack:', err.stack);
+    if (err.sql) {
+      console.error('  SQL:', err.sql);
+      console.error('  SQL params:', err.sqlMessage || '');
+    }
+    console.error('  Payload received:', req.body);
+    // Return a detailed error (temporarily for debugging)
+    res.status(500).json({
+      error: err.message,
+      sql: err.sql || null,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
   } finally {
     conn.release();
   }
