@@ -804,6 +804,8 @@ document.getElementById('cases-filter-modal')?.addEventListener('click', e => {
 // ── Boot ──────────────────────────────────────────────
 document.addEventListener('componentsReady', async () => {
   await loadCases();
-  const openId = new URLSearchParams(window.location.search).get('open');
+  const params = new URLSearchParams(window.location.search);
+  const openId = params.get('open');
   if (openId) openCaseOverlay(parseInt(openId));
+  if (params.get('action') === 'new') openNewCaseOverlay();
 });
