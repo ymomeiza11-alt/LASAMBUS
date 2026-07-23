@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS cases (
   notified_by         VARCHAR(255),
   lga_lcda            VARCHAR(50),
   incident_type       VARCHAR(100),
-  incident_severity   VARCHAR(20),          -- NULL for migrated records
+  incident_severity   VARCHAR(100),         -- NULL for migrated records
   incident_location   TEXT,
   incident_description TEXT,                -- NULL for migrated records
   dispatch_date       DATE,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS cases (
   treatment_centre    VARCHAR(150) DEFAULT NULL,
   arrival_date        DATE,
   arrival_time        TIME,
-  situation_on_arrival VARCHAR(100),
+  situation_on_arrival VARCHAR(255),
   collapsed_buildings      SMALLINT UNSIGNED DEFAULT NULL,
   desc_collapsed_buildings TEXT              DEFAULT NULL,
   response_time_mins  SMALLINT UNSIGNED,    -- arrival − time_of_incident
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS patient_info (
   respiratory_rate    DECIMAL(5,1),
   temperature         DECIMAL(4,1),
   condition_on_arrival ENUM('Stable','Unstable'),
-  spo2                VARCHAR(10),
+  spo2                VARCHAR(30),
 
   -- Page 3: Medical History
   gastrointestinal    TEXT,
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS patient_info (
   witnesses        TEXT,
 
   -- Metadata
-  situation_on_arrival VARCHAR(100),
+  situation_on_arrival VARCHAR(255),
   submitted_by         INT DEFAULT NULL,
   created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

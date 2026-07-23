@@ -111,7 +111,7 @@ router.post('/', requireLogin, async (req, res) => {
       incident_location || null, incident_description || null,
       dispatchDate, paddedDispatch, ambulance_id || null, treatment_centre || null,
       responseMins,
-      req.session.user_id || null,   // <── using user_id (not userId)
+      req.session.userId || null,
     ];
     console.log('🔍 Inserting with values:', insertValues);
 
@@ -225,8 +225,11 @@ router.get('/:id', requireLogin, async (req, res) => {
 // PUT /api/cases/:id
 router.put('/:id', requireLogin, async (req, res) => {
   const { incident_type, incident_severity, lga_lcda, incident_location, incident_description, case_status } = req.body;
+  const conn = await pool.getConnection();
   try {
-    await pool.query(
+    await conn.beginTransaction();
+
+    await conn.query(
       `UPDATE cases SET
          incident_type = COALESCE(?, incident_type),
          incident_severity = COALESCE(?, incident_severity),
@@ -237,10 +240,38 @@ router.put('/:id', requireLogin, async (req, res) => {
        WHERE case_id = ?`,
       [incident_type, incident_severity, lga_lcda, incident_location, incident_description, case_status, req.params.id]
     );
+
+    // When a case is cancelled, release its ambulance and paramedics
+    if (case_status === 'Cancelled') {
+      const [[caseRow]] = await conn.query(
+        'SELECT ambulance_id FROM cases WHERE case_id = ?', [req.params.id]
+      );
+      if (caseRow?.ambulance_id) {
+        await conn.query(
+          `UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`,
+          [caseRow.ambulance_id]
+        );
+      }
+      const [pmeds] = await conn.query(
+        'SELECT user_id FROM case_paramedics WHERE case_id = ?', [req.params.id]
+      );
+      if (pmeds.length) {
+        const ids = pmeds.map(r => r.user_id);
+        await conn.query(
+          `UPDATE users SET status = 'Available' WHERE user_id IN (${ids.map(() => '?').join(',')})`,
+          ids
+        );
+      }
+    }
+
+    await conn.commit();
     res.json({ ok: true });
   } catch (err) {
+    await conn.rollback();
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    conn.release();
   }
 });
 
