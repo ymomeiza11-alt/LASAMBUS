@@ -14,6 +14,11 @@ async function injectComponents() {
 
   const header = `
     <header class="lasambus-header">
+      <div class="header-left">
+        <button class="header-icon-btn mobile-menu-btn" id="mobileMenuBtn" title="Menu" onclick="toggleMobileSidebar()">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
       <div class="header-right">
         <button class="header-icon-btn notif-bell-btn" id="notifBellBtn" title="Notifications" onclick="toggleNotifPanel()">
           <i class="bi bi-bell"></i>
@@ -47,6 +52,12 @@ async function injectComponents() {
           <a href="cases.html" class="sidebar-link">
             <i class="bi bi-folder2-open"></i>
             <span class="sidebar-label">Cases</span>
+          </a>
+        </li>
+        <li>
+          <a href="javascript:void(0)" class="sidebar-link" onclick="sidebarNewCase()">
+            <i class="bi bi-plus-circle"></i>
+            <span class="sidebar-label">New Case</span>
           </a>
         </li>
         <li>
@@ -204,19 +215,77 @@ function initSidebar() {
   const toggle  = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('sidebar');
   const layout  = document.querySelector('.lasambus-layout');
-  if (!toggle || !sidebar) return;
+  if (!sidebar) return;
 
-  const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-  if (collapsed) {
-    sidebar.classList.add('collapsed');
-    if (layout) layout.classList.add('sidebar-collapsed');
+  // Desktop: restore collapsed state
+  if (window.innerWidth > 768) {
+    const collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (collapsed) {
+      sidebar.classList.add('collapsed');
+      if (layout) layout.classList.add('sidebar-collapsed');
+    }
   }
 
-  toggle.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-    if (layout) layout.classList.toggle('sidebar-collapsed');
-    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+      } else {
+        sidebar.classList.toggle('collapsed');
+        if (layout) layout.classList.toggle('sidebar-collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+      }
+    });
+  }
+
+  // Close mobile sidebar when any nav link is clicked
+  sidebar.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeMobileSidebar();
+    });
   });
+}
+
+function toggleMobileSidebar() {
+  const placeholder = document.getElementById('sidebar-placeholder');
+  if (!placeholder) return;
+  if (placeholder.classList.contains('mobile-open')) {
+    closeMobileSidebar();
+  } else {
+    openMobileSidebar();
+  }
+}
+
+function openMobileSidebar() {
+  const placeholder = document.getElementById('sidebar-placeholder');
+  if (!placeholder) return;
+  placeholder.classList.add('mobile-open');
+
+  let backdrop = document.getElementById('mobile-sidebar-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'mobile-sidebar-backdrop';
+    backdrop.className = 'mobile-sidebar-backdrop';
+    backdrop.addEventListener('click', closeMobileSidebar);
+    document.body.appendChild(backdrop);
+  }
+  backdrop.classList.add('open');
+}
+
+function closeMobileSidebar() {
+  const placeholder = document.getElementById('sidebar-placeholder');
+  const backdrop    = document.getElementById('mobile-sidebar-backdrop');
+  if (placeholder) placeholder.classList.remove('mobile-open');
+  if (backdrop)    backdrop.classList.remove('open');
+}
+
+function sidebarNewCase() {
+  if (window.innerWidth <= 768) closeMobileSidebar();
+  if (typeof openNewCaseOverlay === 'function') {
+    openNewCaseOverlay();
+  } else {
+    window.location.href = 'cases.html?action=new';
+  }
 }
 
 function setActiveSidebarLink() {

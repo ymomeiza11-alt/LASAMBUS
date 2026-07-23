@@ -1,5 +1,6 @@
 .login-body {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,4 +109,13 @@
 
 #credentials-error.visible {
   display: block;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 32px 24px;
+    margin: 16px;
+    border-radius: 12px;
+  }
+  .login-title { font-size: 1.3rem; }
 }
