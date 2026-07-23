@@ -1,27 +1,3 @@
-// ── "Other" select helper ─────────────────────────────
-function handleOtherSelect(sel, otherId) {
-  const v = sel.value;
-  const el = document.getElementById(otherId);
-  if (!el) return;
-  if (v === 'Other' || v === 'Others') {
-    el.classList.remove('hidden');
-  } else {
-    el.classList.add('hidden');
-    el.value = '';
-  }
-}
-
-function getOtherValue(selectId, otherId) {
-  const sel = document.getElementById(selectId);
-  if (!sel) return null;
-  const v = sel.value;
-  if ((v === 'Other' || v === 'Others') && otherId) {
-    const txt = document.getElementById(otherId)?.value.trim();
-    return txt || v;
-  }
-  return v;
-}
-
 // ── New Case overlay ──────────────────────────────────
 const ncSelectedParamedics = [];
 
@@ -42,24 +18,6 @@ function openNewCaseOverlay() {
 function closeNewCaseOverlay() {
   document.getElementById('new-case-overlay').classList.remove('open');
   document.body.style.overflow = '';
-}
-
-async function loadAvailableParamedicsDropdown(dropdownId) {
-  try {
-    const paramedics = await apiFetch('/api/paramedics/available');
-    const sel = document.getElementById(dropdownId);
-    sel.innerHTML = '<option value="">-- Select Paramedic --</option>' +
-      paramedics.map(p => `<option value="${p.user_id}">${p.username} — ${p.first_name} ${p.last_name}</option>`).join('');
-  } catch { /* leave as is */ }
-}
-
-async function loadAvailableAmbulancesDropdown(selectId) {
-  try {
-    const ambs = await apiFetch('/api/ambulances/available');
-    const sel = document.getElementById(selectId);
-    sel.innerHTML = '<option value="">-- Select Available Ambulance --</option>' +
-      ambs.map(a => `<option value="${a.ambulance_id}">${a.ambulance_code} — ${a.vehicle_name}</option>`).join('');
-  } catch { /* leave as is */ }
 }
 
 function ncAddParamedic() {
@@ -122,7 +80,6 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
   try {
     const { case_id } = await apiFetch('/api/cases', { method: 'POST', body: JSON.stringify(payload) });
     closeNewCaseOverlay();
-    // Navigate to cases page and open the newly created case
     window.location.href = `cases.html?open=${case_id}`;
   } catch (err) {
     alert('Could not create case: ' + err.message);
@@ -140,8 +97,8 @@ async function loadDashboard() {
     if (!res.ok) return;
     const data = await res.json();
 
-    document.getElementById('stat-cases-month').textContent = data.casesMonth;
-    document.getElementById('stat-completed').textContent   = data.completed;
+    document.getElementById('stat-cases-month').textContent  = data.casesMonth;
+    document.getElementById('stat-completed').textContent    = data.completed;
     document.getElementById('stat-success-rate').textContent = data.successRate + '%';
 
     const tbody = document.getElementById('dashboard-table-body');
@@ -150,7 +107,7 @@ async function loadDashboard() {
       return;
     }
     tbody.innerHTML = data.recentCases.map((c, i) => `
-      <tr>
+      <tr class="clickable-row" onclick="openCaseOverlay(${c.case_id})">
         <td>${i + 1}</td>
         <td>${formatDate(c.date_of_incident)}</td>
         <td>${c.incident_description || '—'}</td>

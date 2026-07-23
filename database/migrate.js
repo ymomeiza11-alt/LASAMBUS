@@ -103,7 +103,7 @@ async function run() {
   console.log('✓ Connected to database.\n');
 
   // Read and parse CSV
-  const csvPath = path.resolve(__dirname, '../find-cases.csv');
+  let csvPath = path.resolve(__dirname, '../find-cases.csv');
   if (!fs.existsSync(csvPath)) {
     // Fallback: look in Downloads
     const fallback = path.join(
