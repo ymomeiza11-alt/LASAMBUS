@@ -355,8 +355,8 @@ router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Person
     await conn.query(
       `UPDATE cases SET arrival_date = ?, arrival_time = ?, situation_on_arrival = ?,
                         collapsed_buildings = ?, desc_collapsed_buildings = ?,
-                        response_time_mins = ?, transit_time_mins = ?,
-                        case_status = 'Complete' WHERE case_id = ?`,
+                        response_time_mins = ?, transit_time_mins = ?
+                        WHERE case_id = ?`,
       [
         arrival_date, arrival_time, situation_on_arrival || null,
         collapsedVal, desc_collapsed_buildings || null,
@@ -364,17 +364,38 @@ router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Person
       ]
     );
 
-    if (caseRow.ambulance_id) {
-      await conn.query(
-        `UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`,
-        [caseRow.ambulance_id]
-      );
-    }
+    await conn.commit();
+    res.json({ ok: true, transit_time_mins: transitMins });
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    conn.release();
+  }
+});
 
-    const [pmeds] = await conn.query(
-      'SELECT user_id FROM case_paramedics WHERE case_id = ?',
+// ── Mark Complete (Admin or Ambulance Personnel) ──────
+// POST /api/cases/:id/complete
+router.post('/:id/complete', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [[caseRow]] = await conn.query(
+      'SELECT case_status, ambulance_id FROM cases WHERE case_id = ?',
       [req.params.id]
     );
+    if (!caseRow) { await conn.rollback(); return res.status(404).json({ error: 'Case not found' }); }
+    if (caseRow.case_status === 'Complete') { await conn.rollback(); return res.json({ ok: true }); }
+
+    await conn.query('UPDATE cases SET case_status = ? WHERE case_id = ?', ['Complete', req.params.id]);
+
+    if (caseRow.ambulance_id) {
+      await conn.query(`UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`, [caseRow.ambulance_id]);
+    }
+
+    const [pmeds] = await conn.query('SELECT user_id FROM case_paramedics WHERE case_id = ?', [req.params.id]);
     if (pmeds.length) {
       const ids = pmeds.map(r => r.user_id);
       await conn.query(
@@ -397,7 +418,7 @@ router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Person
       } catch { /* non-critical */ }
     }
 
-    res.json({ ok: true, transit_time_mins: transitMins });
+    res.json({ ok: true });
   } catch (err) {
     await conn.rollback();
     console.error(err);

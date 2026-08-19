@@ -453,12 +453,14 @@
               <select id="arrival-situation" onchange="handleOtherSelect(this, 'arrival-situation-other')">
                 <option value="">-- Select --</option>
                 <option>Nothing Sighted</option>
-                <option>No Victim</option>
-                <option>Corpse</option>
-                <option>Live Victim/Treat and Discharge</option>
                 <option>Evacuation</option>
-                <option>Not Attended</option>
-                <option>Other</option>
+                <option>No Access</option>
+                <option>Corpse</option>
+                <option>Live Victim Treated and Discharged</option>
+                <option>Live Victim Treated and Moved</option>
+                <option>Victim Refused Treatment</option>
+                <option>No Victim</option>
+                <option>Others</option>
               </select>
               <input type="text" id="arrival-situation-other" class="other-text hidden" style="margin-top:8px;" placeholder="Please describe the situation" />
             </div>
@@ -480,6 +482,9 @@
               <div class="info-row" id="saved-collapsed-row"><span class="info-label">Collapsed Buildings</span><span class="info-value" id="saved-collapsed-buildings">—</span></div>
               <div class="info-row" id="saved-desc-collapsed-row"><span class="info-label">Buildings Description</span><span class="info-value" id="saved-desc-collapsed">—</span></div>
             </div>
+            <button type="button" class="btn btn-success mt-16 hidden" id="btn-mark-complete" onclick="markCaseComplete()">
+              Mark as Complete
+            </button>
           </div>
         </div>
       </div>

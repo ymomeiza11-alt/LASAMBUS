@@ -2,6 +2,7 @@
 const ncSelectedParamedics = [];
 
 function openNewCaseOverlay() {
+  if (window.__currentUser?.role === 'Ambulance Personnel') return;
   const now = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('nc-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;

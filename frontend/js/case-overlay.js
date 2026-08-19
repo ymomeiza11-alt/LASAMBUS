@@ -282,6 +282,8 @@ function populateArrival(c) {
     } else {
       descRow.classList.add('hidden');
     }
+    const completeBtn = document.getElementById('btn-mark-complete');
+    if (completeBtn) completeBtn.classList.toggle('hidden', c.case_status === 'Complete');
   } else {
     document.getElementById('arrival-form').classList.remove('hidden');
     document.getElementById('arrival-saved').classList.add('hidden');
@@ -294,6 +296,17 @@ function populateArrival(c) {
     document.getElementById('arrival-situation').value = '';
     document.getElementById('arrival-situation-other').classList.add('hidden');
     document.getElementById('arrival-situation-other').value = '';
+  }
+}
+
+async function markCaseComplete() {
+  try {
+    await apiFetch(`/api/cases/${currentCaseId}/complete`, { method: 'POST' });
+    await loadCaseDetail(currentCaseId);
+    if (typeof loadCases     === 'function') loadCases();
+    if (typeof loadDashboard === 'function') loadDashboard();
+  } catch (err) {
+    alert('Could not mark case as complete: ' + err.message);
   }
 }
 
