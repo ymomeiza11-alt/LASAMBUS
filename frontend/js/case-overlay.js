@@ -117,7 +117,8 @@ async function loadCaseDetail(caseId) {
     document.getElementById('ov-incident-type').textContent = c.incident_type || '—';
     document.getElementById('ov-severity').textContent      = c.incident_severity || '—';
     document.getElementById('ov-lga').textContent           = c.lga_lcda || '—';
-    document.getElementById('ov-location').textContent      = c.incident_location || '—';
+    document.getElementById('ov-location').textContent         = c.incident_location || '—';
+    document.getElementById('ov-situation').textContent        = c.situation_on_arrival || '—';
 
     const badge = document.getElementById('ov-status-badge');
     const map   = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
@@ -268,24 +269,11 @@ function populateArrival(c) {
   if (c.arrival_time) {
     document.getElementById('arrival-form').classList.add('hidden');
     document.getElementById('arrival-saved').classList.remove('hidden');
-    document.getElementById('saved-arrival-date').textContent = formatDate(c.arrival_date);
-    document.getElementById('saved-arrival-time').textContent = c.arrival_time;
-    document.getElementById('saved-situation').textContent    = c.situation_on_arrival || '—';
+    document.getElementById('saved-arrival-date').textContent     = formatDate(c.arrival_date);
+    document.getElementById('saved-arrival-time').textContent     = c.arrival_time;
+    document.getElementById('saved-situation').textContent        = c.situation_on_arrival || '—';
+    document.getElementById('saved-situation-desc').textContent   = c.desc_collapsed_buildings || '—';
 
-    const collapsedRow = document.getElementById('saved-collapsed-row');
-    const descRow      = document.getElementById('saved-desc-collapsed-row');
-    if (c.collapsed_buildings != null) {
-      document.getElementById('saved-collapsed-buildings').textContent = c.collapsed_buildings;
-      collapsedRow.classList.remove('hidden');
-    } else {
-      collapsedRow.classList.add('hidden');
-    }
-    if (c.desc_collapsed_buildings) {
-      document.getElementById('saved-desc-collapsed').textContent = c.desc_collapsed_buildings;
-      descRow.classList.remove('hidden');
-    } else {
-      descRow.classList.add('hidden');
-    }
     const completeBtn = document.getElementById('btn-mark-complete');
     if (completeBtn) completeBtn.classList.toggle('hidden', c.case_status === 'Complete');
   } else {
@@ -295,8 +283,7 @@ function populateArrival(c) {
     const pad = n => String(n).padStart(2, '0');
     document.getElementById('arrival-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     document.getElementById('arrival-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    document.getElementById('arrival-collapsed-buildings').value = '';
-    document.getElementById('arrival-desc-collapsed').value = '';
+    document.getElementById('arrival-situation-desc').value = '';
     document.getElementById('arrival-situation').value = '';
     document.getElementById('arrival-situation-other').classList.add('hidden');
     document.getElementById('arrival-situation-other').value = '';
@@ -320,8 +307,7 @@ async function saveArrival() {
   const situation = getOtherValue('arrival-situation', 'arrival-situation-other');
   if (!date || !time || !situation) { alert('Please fill in all required arrival fields.'); return; }
 
-  const collapsedVal = document.getElementById('arrival-collapsed-buildings').value;
-  const descVal      = document.getElementById('arrival-desc-collapsed').value.trim();
+  const situationDesc = document.getElementById('arrival-situation-desc')?.value.trim();
 
   try {
     await apiFetch(`/api/cases/${currentCaseId}/arrival`, {
@@ -330,8 +316,7 @@ async function saveArrival() {
         arrival_date:             date,
         arrival_time:             time,
         situation_on_arrival:     situation,
-        collapsed_buildings:      collapsedVal !== '' ? parseInt(collapsedVal) : null,
-        desc_collapsed_buildings: descVal || null,
+        desc_collapsed_buildings: situationDesc || null,
       }),
     });
     await loadCaseDetail(currentCaseId);
@@ -426,7 +411,14 @@ async function savePatientFinal() {
 async function loadPatientList(caseId) {
   try {
     const patients = await apiFetch(`/api/cases/${caseId}/patients`);
-    const tbody    = document.getElementById('patient-list-body');
+
+    const count = patients.length;
+    ['saved-patient-count', 'form-patient-count'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = count;
+    });
+
+    const tbody = document.getElementById('patient-list-body');
     if (!patients.length) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">No patients recorded yet.</td></tr>';
       return;

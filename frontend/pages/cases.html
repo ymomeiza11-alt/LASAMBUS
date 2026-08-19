@@ -281,6 +281,7 @@
             <div class="info-row"><span class="info-label">Incident Severity</span><span class="info-value" id="ov-severity">Major</span></div>
             <div class="info-row"><span class="info-label">LGA/LCDA</span><span class="info-value" id="ov-lga">Ojota</span></div>
             <div class="info-row"><span class="info-label">Location</span><span class="info-value" id="ov-location">Ojota, Lagos</span></div>
+            <div class="info-row"><span class="info-label">Situation on Arrival</span><span class="info-value" id="ov-situation">—</span></div>
             <div class="info-row"><span class="info-label">Case Status</span><span class="info-value"><span class="status-badge status-complete" id="ov-status-badge">Completed</span></span></div>
           </div>
 
@@ -468,12 +469,12 @@
               <input type="text" id="arrival-situation-other" class="other-text hidden" style="margin-top:8px;" placeholder="Please describe the situation" />
             </div>
             <div class="form-group">
-              <label>No. of Collapsed Buildings</label>
-              <input type="number" id="arrival-collapsed-buildings" min="0" placeholder="0" />
+              <label>Description of Situation</label>
+              <textarea id="arrival-situation-desc" placeholder="Describe the situation on arrival..."></textarea>
             </div>
             <div class="form-group">
-              <label>Description of Collapsed Buildings <span style="color:#888; font-weight:400;">(optional)</span></label>
-              <textarea id="arrival-desc-collapsed" placeholder="Describe the buildings affected..."></textarea>
+              <label>No. of Patients</label>
+              <p id="form-patient-count" style="margin:4px 0 0; font-weight:600; color:#333;">—</p>
             </div>
             <button type="button" class="btn btn-primary mt-16" onclick="saveArrival()">Arrived</button>
           </div>
@@ -482,8 +483,8 @@
               <div class="info-row"><span class="info-label">Arrived Date</span><span class="info-value" id="saved-arrival-date">—</span></div>
               <div class="info-row"><span class="info-label">Arrived Time</span><span class="info-value" id="saved-arrival-time">—</span></div>
               <div class="info-row"><span class="info-label">Situation on Arrival</span><span class="info-value" id="saved-situation">—</span></div>
-              <div class="info-row" id="saved-collapsed-row"><span class="info-label">Collapsed Buildings</span><span class="info-value" id="saved-collapsed-buildings">—</span></div>
-              <div class="info-row" id="saved-desc-collapsed-row"><span class="info-label">Buildings Description</span><span class="info-value" id="saved-desc-collapsed">—</span></div>
+              <div class="info-row"><span class="info-label">Description of Situation</span><span class="info-value" id="saved-situation-desc">—</span></div>
+              <div class="info-row"><span class="info-label">No. of Patients</span><span class="info-value" id="saved-patient-count">—</span></div>
             </div>
             <button type="button" class="btn btn-primary mt-16 hidden" id="btn-mark-complete" onclick="markCaseComplete()">
               Mark as Complete
