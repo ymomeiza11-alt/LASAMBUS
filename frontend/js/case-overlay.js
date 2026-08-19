@@ -54,12 +54,36 @@ let epCurrentPage       = 1;
 const EP_TOTAL_PAGES    = 7;
 
 // ── Case overlay ──────────────────────────────────────
-async function openCaseOverlay(caseId) {
+async function openCaseOverlay(caseId, isDispatched = false) {
+  const role = window.__currentUser?.role;
+  if (role === 'Dispatcher' && isDispatched) return;
   currentCaseId = caseId;
   document.getElementById('case-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  switchTab('overview', document.querySelector('#case-overlay .inpage-tab'));
+  adjustOverlayTabs(role);
   await loadCaseDetail(caseId);
+}
+
+function adjustOverlayTabs(role) {
+  const show = id => document.getElementById(id)?.classList.remove('hidden');
+  const hide = id => document.getElementById(id)?.classList.add('hidden');
+  if (role === 'Dispatcher') {
+    show('tab-btn-overview'); show('tab-btn-dispatch');
+    hide('tab-btn-notes'); hide('tab-btn-arrival'); hide('tab-btn-patients');
+    hide('btn-edit-case');
+    switchTab('overview', document.getElementById('tab-btn-overview'));
+  } else if (role === 'Ambulance Personnel') {
+    hide('tab-btn-overview'); hide('tab-btn-dispatch');
+    show('tab-btn-notes'); show('tab-btn-arrival'); show('tab-btn-patients');
+    hide('btn-edit-case');
+    switchTab('notes', document.getElementById('tab-btn-notes'));
+  } else {
+    show('tab-btn-overview'); show('tab-btn-dispatch');
+    hide('tab-btn-notes');
+    show('tab-btn-arrival'); show('tab-btn-patients');
+    show('btn-edit-case');
+    switchTab('overview', document.getElementById('tab-btn-overview'));
+  }
 }
 
 function closeCaseOverlay() {
@@ -72,6 +96,13 @@ function closeCaseOverlay() {
 async function loadCaseDetail(caseId) {
   try {
     const c = await apiFetch(`/api/cases/${caseId}`);
+
+    const role = window.__currentUser?.role;
+    if (role === 'Dispatcher' && c.dispatch_time) {
+      closeCaseOverlay();
+      return;
+    }
+
     document.getElementById('overlay-title').textContent =
       `Case ${c.case_id}${c.incident_type ? ' — ' + c.incident_type : ''}`;
 
@@ -97,6 +128,22 @@ async function loadCaseDetail(caseId) {
     setSelectVal('edit-status', c.case_status);
     toggleEditMode(false);
 
+    const notesEl   = document.getElementById('notes-content');
+    const notesEmpty = document.getElementById('notes-empty');
+    if (notesEl && notesEmpty) {
+      if (c.dispatcher_notes) {
+        notesEl.textContent = c.dispatcher_notes;
+        notesEl.classList.remove('hidden');
+        notesEmpty.classList.add('hidden');
+      } else {
+        notesEl.textContent = '';
+        notesEl.classList.add('hidden');
+        notesEmpty.classList.remove('hidden');
+      }
+    }
+    const savedNotes = document.getElementById('saved-dispatcher-notes');
+    if (savedNotes) savedNotes.textContent = c.dispatcher_notes || '—';
+
     populateDispatch(c);
     populateArrival(c);
     loadPatientList(caseId);
@@ -113,7 +160,9 @@ function setSelectVal(id, val) {
 function toggleEditMode(enable) {
   document.getElementById('overview-view').classList.toggle('hidden', enable);
   document.getElementById('overview-edit').classList.toggle('hidden', !enable);
-  document.getElementById('btn-edit-case').classList.toggle('hidden', enable);
+  const editBtn = document.getElementById('btn-edit-case');
+  const isAdmin = window.__currentUser?.role === 'Admin';
+  if (editBtn) editBtn.classList.toggle('hidden', enable || !isAdmin);
   document.getElementById('btn-save-overview').classList.toggle('hidden', !enable);
   document.getElementById('btn-cancel-edit').classList.toggle('hidden', !enable);
 }
@@ -196,9 +245,15 @@ async function saveDispatch() {
   };
   try {
     await apiFetch(`/api/cases/${currentCaseId}/dispatch`, { method: 'POST', body: JSON.stringify(payload) });
-    await loadCaseDetail(currentCaseId);
-    if (typeof loadCases    === 'function') loadCases();
-    if (typeof loadDashboard === 'function') loadDashboard();
+    if (window.__currentUser?.role === 'Dispatcher') {
+      closeCaseOverlay();
+      if (typeof loadCases     === 'function') loadCases();
+      if (typeof loadDashboard === 'function') loadDashboard();
+    } else {
+      await loadCaseDetail(currentCaseId);
+      if (typeof loadCases     === 'function') loadCases();
+      if (typeof loadDashboard === 'function') loadDashboard();
+    }
   } catch (err) {
     alert('Dispatch failed: ' + err.message);
   }

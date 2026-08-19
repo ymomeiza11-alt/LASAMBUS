@@ -24,7 +24,7 @@ router.get('/', requireLogin, async (req, res) => {
 
     const [recentCases] = await pool.query(`
       SELECT case_id, date_of_incident, incident_description, incident_location,
-             situation_on_arrival, case_status
+             situation_on_arrival, case_status, dispatch_time
       FROM cases
       ORDER BY case_id DESC
       LIMIT 15

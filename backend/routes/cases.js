@@ -1,6 +1,6 @@
 const router              = require('express').Router();
 const { pool }            = require('../config/db');
-const { requireLogin }    = require('../middleware/auth');
+const { requireLogin, requireRole } = require('../middleware/auth');
 const { notifyMany }      = require('../utils/notify');
 
 // ── Helpers ───────────────────────────────────────────
@@ -68,81 +68,64 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
-// ── Create case ───────────────────────────────────────
+// ── Create case (Admin or Dispatcher only) ────────────
 // POST /api/cases
-router.post('/', requireLogin, async (req, res) => {
-  // ── 1. Log the incoming payload ──────────────────────
-  console.log('📦 New case payload:', JSON.stringify(req.body, null, 2));
-
+router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, res) => {
   const {
     date_of_incident, time_of_incident,
     notified_by, lga_lcda, incident_type, incident_severity,
-    incident_location, incident_description,
+    incident_location, incident_description, dispatcher_notes,
     dispatch_time, ambulance_id, treatment_centre, paramedic_ids,
   } = req.body;
 
-  // ── 2. Pad time to HH:MM:SS if needed ──────────────
   const padTime = (t) => {
     if (!t) return null;
     const s = t.trim();
     return s.length === 5 ? s + ':00' : s;
   };
 
-  const today       = date_of_incident  || new Date().toISOString().slice(0, 10);
-  const incidentTime = padTime(time_of_incident) || new Date().toTimeString().slice(0, 8);
-  const dispatchDate = dispatch_time ? today : null;
+  const today          = date_of_incident  || new Date().toISOString().slice(0, 10);
+  const incidentTime   = padTime(time_of_incident) || new Date().toTimeString().slice(0, 8);
+  const dispatchDate   = dispatch_time ? today : null;
   const paddedDispatch = padTime(dispatch_time);
 
   const responseMins = paddedDispatch
     ? minutesBetween(today, incidentTime, today, paddedDispatch)
     : null;
 
-  // ── 3. Log session user ID ──────────────────────────
-  console.log(`👤 Session user_id: ${req.session.user_id} (type: ${typeof req.session.user_id})`);
-
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-
-    // ── 4. Log the final values being inserted ────────
-    const insertValues = [
-      today, incidentTime,
-      notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
-      incident_location || null, incident_description || null,
-      dispatchDate, paddedDispatch, ambulance_id || null, treatment_centre || null,
-      responseMins,
-      req.session.userId || null,
-    ];
-    console.log('🔍 Inserting with values:', insertValues);
 
     const [result] = await conn.query(
       `INSERT INTO cases
          (date_of_incident, time_of_incident,
           notified_by, lga_lcda, incident_type, incident_severity,
-          incident_location, incident_description,
+          incident_location, incident_description, dispatcher_notes,
           dispatch_date, dispatch_time, ambulance_id, treatment_centre,
           response_time_mins, case_status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
-      insertValues
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
+      [
+        today, incidentTime,
+        notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
+        incident_location || null, incident_description || null, dispatcher_notes || null,
+        dispatchDate, paddedDispatch, ambulance_id || null, treatment_centre || null,
+        responseMins,
+        req.session.userId || null,
+      ]
     );
 
     const caseId = result.insertId;
-    console.log(`✅ Case inserted with ID: ${caseId}`);
 
-    // ── 5. Update ambulance ────────────────────────────
     if (ambulance_id) {
-      console.log(`🚑 Assigning ambulance ${ambulance_id}`);
       await conn.query(`UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id = ?`, [ambulance_id]);
     }
 
-    // ── 6. Assign paramedics ───────────────────────────
     if (Array.isArray(paramedic_ids) && paramedic_ids.length) {
-      console.log(`👨‍⚕️ Assigning paramedics:`, paramedic_ids);
       const placeholders = paramedic_ids.map(() => '(?,?)').join(',');
-      const flatParams = paramedic_ids.flatMap(id => [caseId, id]);
       await conn.query(
         `INSERT IGNORE INTO case_paramedics (case_id, user_id) VALUES ${placeholders}`,
-        flatParams
+        paramedic_ids.flatMap(id => [caseId, id])
       );
       await conn.query(
         `UPDATE users SET status = 'Assigned' WHERE user_id IN (${paramedic_ids.map(() => '?').join(',')})`,
@@ -151,9 +134,7 @@ router.post('/', requireLogin, async (req, res) => {
     }
 
     await conn.commit();
-    console.log(`🎉 Case ${caseId} created successfully`);
 
-    // ── 7. Send notifications ──────────────────────────
     if (Array.isArray(paramedic_ids) && paramedic_ids.length && paddedDispatch) {
       try {
         await notifyMany(
@@ -163,7 +144,7 @@ router.post('/', requireLogin, async (req, res) => {
           caseId
         );
       } catch (notifErr) {
-        console.warn('⚠️ Notification failed (non‑critical):', notifErr.message);
+        console.warn('Notification failed (non-critical):', notifErr.message);
       }
     }
 
@@ -171,21 +152,8 @@ router.post('/', requireLogin, async (req, res) => {
 
   } catch (err) {
     await conn.rollback();
-    // ── 8. Detailed error logging ──────────────────────
-    console.error('❌ Case creation ERROR:');
-    console.error('  Message:', err.message);
-    console.error('  Stack:', err.stack);
-    if (err.sql) {
-      console.error('  SQL:', err.sql);
-      console.error('  SQL params:', err.sqlMessage || '');
-    }
-    console.error('  Payload received:', req.body);
-    // Return a detailed error (temporarily for debugging)
-    res.status(500).json({
-      error: err.message,
-      sql: err.sql || null,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    });
+    console.error('Case creation error:', err.message);
+    res.status(500).json({ error: err.message });
   } finally {
     conn.release();
   }
@@ -221,9 +189,9 @@ router.get('/:id', requireLogin, async (req, res) => {
   }
 });
 
-// ── Update case overview ──────────────────────────────
+// ── Update case overview (Admin only) ─────────────────
 // PUT /api/cases/:id
-router.put('/:id', requireLogin, async (req, res) => {
+router.put('/:id', requireLogin, requireRole('Admin'), async (req, res) => {
   const { incident_type, incident_severity, lga_lcda, incident_location, incident_description, case_status } = req.body;
   const conn = await pool.getConnection();
   try {
@@ -241,7 +209,6 @@ router.put('/:id', requireLogin, async (req, res) => {
       [incident_type, incident_severity, lga_lcda, incident_location, incident_description, case_status, req.params.id]
     );
 
-    // When a case is cancelled, release its ambulance and paramedics
     if (case_status === 'Cancelled') {
       const [[caseRow]] = await conn.query(
         'SELECT ambulance_id FROM cases WHERE case_id = ?', [req.params.id]
@@ -275,9 +242,9 @@ router.put('/:id', requireLogin, async (req, res) => {
   }
 });
 
-// ── Dispatch ──────────────────────────────────────────
+// ── Dispatch (Admin or Dispatcher) ────────────────────
 // POST /api/cases/:id/dispatch
-router.post('/:id/dispatch', requireLogin, async (req, res) => {
+router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, res) => {
   const { dispatch_date, dispatch_time, ambulance_id, treatment_centre, paramedic_ids } = req.body;
   if (!dispatch_date || !dispatch_time) return res.status(400).json({ error: 'dispatch_date and dispatch_time required' });
 
@@ -306,7 +273,6 @@ router.post('/:id/dispatch', requireLogin, async (req, res) => {
       await conn.query(`UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id = ?`, [ambulance_id]);
     }
 
-    // Clear existing paramedic assignments and reset their status
     const [[existingPmed]] = await conn.query(
       'SELECT GROUP_CONCAT(user_id) AS ids FROM case_paramedics WHERE case_id = ?',
       [req.params.id]
@@ -355,9 +321,9 @@ router.post('/:id/dispatch', requireLogin, async (req, res) => {
   }
 });
 
-// ── Arrival ───────────────────────────────────────────
+// ── Arrival (Admin or Ambulance Personnel) ────────────
 // POST /api/cases/:id/arrival
-router.post('/:id/arrival', requireLogin, async (req, res) => {
+router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
   const {
     arrival_date, arrival_time, situation_on_arrival,
     collapsed_buildings, desc_collapsed_buildings,
@@ -378,7 +344,6 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
       caseRow.dispatch_date, caseRow.dispatch_time,
       arrival_date, arrival_time
     );
-
     const responseMins = minutesBetween(
       caseRow.date_of_incident, caseRow.time_of_incident,
       arrival_date, arrival_time
@@ -399,7 +364,6 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
       ]
     );
 
-    // Revert ambulance to Available
     if (caseRow.ambulance_id) {
       await conn.query(
         `UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`,
@@ -407,7 +371,6 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
       );
     }
 
-    // Revert paramedics to Available
     const [pmeds] = await conn.query(
       'SELECT user_id FROM case_paramedics WHERE case_id = ?',
       [req.params.id]
@@ -424,10 +387,9 @@ router.post('/:id/arrival', requireLogin, async (req, res) => {
 
     if (pmeds.length) {
       const caseId = parseInt(req.params.id);
-      const pmedIds = pmeds.map(r => r.user_id);
       try {
         await notifyMany(
-          pmedIds, 'case_complete',
+          pmeds.map(r => r.user_id), 'case_complete',
           `Case #${caseId} Completed`,
           `Case #${caseId} has been marked as complete.`,
           caseId
@@ -465,8 +427,8 @@ router.get('/:id/patients', requireLogin, async (req, res) => {
   }
 });
 
-// POST /api/cases/:id/patients
-router.post('/:id/patients', requireLogin, async (req, res) => {
+// POST /api/cases/:id/patients (Admin or Ambulance Personnel)
+router.post('/:id/patients', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
   const {
     full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
     respiratory_rate, temperature, condition_on_arrival, spo2,
@@ -527,8 +489,8 @@ router.get('/:id/patients/:pid', requireLogin, async (req, res) => {
   }
 });
 
-// PUT /api/cases/:id/patients/:pid
-router.put('/:id/patients/:pid', requireLogin, async (req, res) => {
+// PUT /api/cases/:id/patients/:pid (Admin or Ambulance Personnel)
+router.put('/:id/patients/:pid', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
   const {
     full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
     respiratory_rate, temperature, condition_on_arrival, spo2,

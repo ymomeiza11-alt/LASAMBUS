@@ -20,6 +20,7 @@ router.post('/login', async (req, res) => {
 
     req.session.userId  = user.user_id;
     req.session.isAdmin = user.is_admin === 1;
+    req.session.role    = user.role;
 
     res.json({
       user_id:    user.user_id,
@@ -27,6 +28,7 @@ router.post('/login', async (req, res) => {
       first_name: user.first_name,
       last_name:  user.last_name,
       is_admin:   user.is_admin === 1,
+      role:       user.role,
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -37,6 +39,7 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/change-password (admin only)
 router.post('/change-password', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+  if (req.session.role !== 'Admin') return res.status(403).json({ error: 'Admin only' });
 
   const { current_password, new_password } = req.body || {};
   if (!current_password || !new_password)
@@ -46,11 +49,10 @@ router.post('/change-password', async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      'SELECT password_hash, is_admin FROM users WHERE user_id = ?',
+      'SELECT password_hash FROM users WHERE user_id = ?',
       [req.session.userId]
     );
     if (!rows.length) return res.status(401).json({ error: 'Not authenticated' });
-    if (!rows[0].is_admin) return res.status(403).json({ error: 'Admin only' });
 
     const match = await bcrypt.compare(current_password, rows[0].password_hash);
     if (!match) return res.status(401).json({ error: 'Current password is incorrect' });
@@ -74,7 +76,7 @@ router.get('/me', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
   try {
     const [rows] = await pool.query(
-      'SELECT user_id, username, first_name, last_name, title, cadre, grade_level, email, is_admin, status FROM users WHERE user_id = ?',
+      'SELECT user_id, username, first_name, last_name, title, cadre, grade_level, email, is_admin, role, status FROM users WHERE user_id = ?',
       [req.session.userId]
     );
     if (!rows.length) return res.status(401).json({ error: 'Not authenticated' });

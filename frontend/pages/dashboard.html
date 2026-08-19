@@ -53,7 +53,7 @@
       </div>
 
       <!-- New Case Action -->
-      <div class="flex gap-12 mb-24">
+      <div class="flex gap-12 mb-24" id="btn-new-case">
         <button class="btn btn-primary" onclick="openNewCaseOverlay()">
           <i class="bi bi-plus-lg"></i> New Case
         </button>
@@ -258,6 +258,10 @@
               <option value="bjohnson">bjohnson — Bob Johnson</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>Dispatcher Notes</label>
+            <textarea id="nc-dispatcher-notes" placeholder="Additional notes for the ambulance team (optional)..." style="min-height:80px;"></textarea>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Submit and Open Case</button>
@@ -276,9 +280,10 @@
       <h2 class="page-title" id="overlay-title">Case</h2>
 
       <div class="inpage-nav">
-        <button class="inpage-tab active" onclick="switchTab('overview', this)">Overview</button>
-        <button class="inpage-tab" onclick="switchTab('dispatch', this)">Dispatch</button>
-        <button class="inpage-tab" onclick="switchTab('arrival', this)">Arrival</button>
+        <button class="inpage-tab active" id="tab-btn-overview" onclick="switchTab('overview', this)">Overview</button>
+        <button class="inpage-tab" id="tab-btn-dispatch" onclick="switchTab('dispatch', this)">Dispatch</button>
+        <button class="inpage-tab hidden" id="tab-btn-notes" onclick="switchTab('notes', this)">Dispatcher Notes</button>
+        <button class="inpage-tab" id="tab-btn-arrival" onclick="switchTab('arrival', this)">Arrival</button>
         <button class="inpage-tab" id="tab-btn-patients" onclick="switchTab('patient-list', this)">Patients</button>
       </div>
 
@@ -425,8 +430,18 @@
               <div class="info-row"><span class="info-label">Ambulance</span><span class="info-value" id="saved-ambulance">—</span></div>
               <div class="info-row"><span class="info-label">Treatment Centre</span><span class="info-value" id="saved-treatment-centre">—</span></div>
               <div class="info-row"><span class="info-label">Paramedics</span><span class="info-value" id="saved-paramedics">—</span></div>
+              <div class="info-row"><span class="info-label">Dispatcher Notes</span><span class="info-value" id="saved-dispatcher-notes">—</span></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Dispatcher Notes Tab -->
+      <div class="tab-pane" id="tab-notes">
+        <div class="card">
+          <h3 class="section-heading mb-16">Dispatcher Notes</h3>
+          <p id="notes-content" style="white-space:pre-wrap; color:#444;"></p>
+          <p id="notes-empty" class="hidden" style="color:#888; font-style:italic;">No notes from the dispatcher.</p>
         </div>
       </div>
 

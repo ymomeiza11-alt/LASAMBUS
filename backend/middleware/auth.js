@@ -9,4 +9,13 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireLogin, requireAdmin };
+// Usage: requireRole('Admin', 'Dispatcher')
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Not authenticated' });
+    if (!roles.includes(req.session.role)) return res.status(403).json({ error: 'Access denied' });
+    next();
+  };
+}
+
+module.exports = { requireLogin, requireAdmin, requireRole };

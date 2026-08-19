@@ -33,9 +33,17 @@ function renderCasesTable(cases) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#888;">No cases found.</td></tr>';
     return;
   }
+  const role   = window.__currentUser?.role;
   const offset = (casesPage - 1) * CASES_LIMIT;
-  tbody.innerHTML = cases.map((c, i) => `
-    <tr class="clickable-row" onclick="openCaseOverlay(${c.case_id})">
+  tbody.innerHTML = cases.map((c, i) => {
+    const isDispatched = !!c.dispatch_time;
+    const canOpen = role === 'Admin' || role === 'Ambulance Personnel' ||
+                    (role === 'Dispatcher' && !isDispatched);
+    const rowAttr = canOpen
+      ? `class="clickable-row" onclick="openCaseOverlay(${c.case_id}, ${isDispatched})"`
+      : 'class=""';
+    return `
+    <tr ${rowAttr}>
       <td>${offset + i + 1}</td>
       <td>${c.case_id}</td>
       <td>${formatDate(c.date_of_incident)}</td>
@@ -45,7 +53,8 @@ function renderCasesTable(cases) {
       <td>${c.incident_location || '—'}</td>
       <td>${c.dispatch_time || '—'}</td>
       <td>${statusBadge(c.case_status)}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function renderPagination() {
@@ -188,6 +197,7 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     incident_severity:    getOtherValue('nc-severity', 'nc-severity-other'),
     incident_location:    document.getElementById('nc-location').value.trim(),
     incident_description: document.getElementById('nc-description').value.trim(),
+    dispatcher_notes:     document.getElementById('nc-dispatcher-notes')?.value.trim() || null,
   };
 
   const dispatchTime = document.getElementById('nc-dispatch-time').value;
@@ -225,7 +235,8 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     const case_id = response.case_id;
     closeNewCaseOverlay();
     loadCases();
-    openCaseOverlay(case_id);
+    const isDispatched = !!payload.dispatch_time;
+    openCaseOverlay(case_id, isDispatched);
   } catch (err) {
     console.error('Case creation failed:', err);
     alert('Could not create case:\n' + (err.message || err));
@@ -242,9 +253,13 @@ document.getElementById('cases-filter-modal')?.addEventListener('click', e => {
 
 // ── Boot ──────────────────────────────────────────────
 document.addEventListener('componentsReady', async () => {
+  const role = window.__currentUser?.role;
+  if (role === 'Ambulance Personnel') {
+    document.getElementById('btn-new-case')?.classList.add('hidden');
+  }
   await loadCases();
   const params = new URLSearchParams(window.location.search);
   const openId = params.get('open');
   if (openId) openCaseOverlay(parseInt(openId));
-  if (params.get('action') === 'new') openNewCaseOverlay();
+  if (params.get('action') === 'new' && role !== 'Ambulance Personnel') openNewCaseOverlay();
 });

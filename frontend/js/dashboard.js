@@ -71,6 +71,7 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     incident_severity:   getOtherValue('nc-severity', 'nc-severity-other'),
     incident_location:   document.getElementById('nc-location').value,
     incident_description: document.getElementById('nc-description').value,
+    dispatcher_notes:    document.getElementById('nc-dispatcher-notes')?.value.trim() || null,
     dispatch_time:       document.getElementById('nc-dispatch-time').value || null,
     ambulance_id:        ambulanceSelect.value || null,
     treatment_centre:    document.getElementById('nc-treatment-centre').value || null,
@@ -106,18 +107,33 @@ async function loadDashboard() {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;">No cases yet.</td></tr>';
       return;
     }
-    tbody.innerHTML = data.recentCases.map((c, i) => `
-      <tr class="clickable-row" onclick="openCaseOverlay(${c.case_id})">
+    const role = window.__currentUser?.role;
+    tbody.innerHTML = data.recentCases.map((c, i) => {
+      const isDispatched = !!c.dispatch_time;
+      const canOpen = role === 'Admin' || role === 'Ambulance Personnel' ||
+                      (role === 'Dispatcher' && !isDispatched);
+      const rowAttr = canOpen
+        ? `class="clickable-row" onclick="openCaseOverlay(${c.case_id}, ${isDispatched})"`
+        : 'class=""';
+      return `
+      <tr ${rowAttr}>
         <td>${i + 1}</td>
         <td>${formatDate(c.date_of_incident)}</td>
         <td>${c.incident_description || '—'}</td>
         <td>${c.incident_location || '—'}</td>
         <td>${c.situation_on_arrival || '—'}</td>
         <td>${statusBadge(c.case_status)}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   } catch (err) {
     console.error('Dashboard load error:', err);
   }
 }
 
-document.addEventListener('componentsReady', loadDashboard);
+document.addEventListener('componentsReady', () => {
+  const role = window.__currentUser?.role;
+  if (role === 'Ambulance Personnel') {
+    document.getElementById('btn-new-case')?.classList.add('hidden');
+  }
+  loadDashboard();
+});

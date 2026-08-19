@@ -33,6 +33,9 @@ async function injectComponents() {
       </div>
     </header>`;
 
+  const role = window.__currentUser.role;
+  const canCreateCases = role === 'Admin' || role === 'Dispatcher';
+
   const sidebar = `
     <nav class="lasambus-sidebar" id="sidebar">
       <div class="sidebar-logo-wrap">
@@ -54,12 +57,13 @@ async function injectComponents() {
             <span class="sidebar-label">Cases</span>
           </a>
         </li>
+        ${canCreateCases ? `
         <li>
           <a href="javascript:void(0)" class="sidebar-link" onclick="sidebarNewCase()">
             <i class="bi bi-plus-circle"></i>
             <span class="sidebar-label">New Case</span>
           </a>
-        </li>
+        </li>` : ''}
         <li>
           <a href="ambulance.html" class="sidebar-link">
             <i class="bi bi-hospital"></i>

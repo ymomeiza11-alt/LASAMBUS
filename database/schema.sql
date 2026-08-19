@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   cadre         VARCHAR(100),
   grade_level   VARCHAR(20),
   is_admin      TINYINT(1)   NOT NULL DEFAULT 0,
+  role          ENUM('Admin','Dispatcher','Ambulance Personnel') NOT NULL DEFAULT 'Ambulance Personnel',
   status        ENUM('Available','Assigned','Unavailable') NOT NULL DEFAULT 'Available',
   unavailable_reason TEXT,
   created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS cases (
   incident_severity   VARCHAR(100),         -- NULL for migrated records
   incident_location   TEXT,
   incident_description TEXT,                -- NULL for migrated records
+  dispatcher_notes    TEXT              DEFAULT NULL,
   dispatch_date       DATE,
   dispatch_time       TIME,                 -- NULL for migrated records
   ambulance_id        INT          DEFAULT NULL,
