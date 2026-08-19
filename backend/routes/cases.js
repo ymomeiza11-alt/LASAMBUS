@@ -2,6 +2,7 @@ const router              = require('express').Router();
 const { pool }            = require('../config/db');
 const { requireLogin, requireRole } = require('../middleware/auth');
 const { notifyMany }      = require('../utils/notify');
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = require('docx');
 
 // ── Helpers ───────────────────────────────────────────
 function minutesBetween(date1, time1, date2, time2) {
@@ -425,6 +426,217 @@ router.post('/:id/complete', requireLogin, requireRole('Admin', 'Ambulance Perso
     res.status(500).json({ error: 'Server error' });
   } finally {
     conn.release();
+  }
+});
+
+// ── Case export — Word document (Admin only) ──────────
+// GET /api/cases/:id/export
+router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) => {
+  try {
+    const caseId = req.params.id;
+
+    const [[c]] = await pool.query(
+      `SELECT c.*,
+              u.username AS created_by_username, u.first_name AS cb_first, u.last_name AS cb_last,
+              a.vehicle_name, a.ambulance_code
+       FROM cases c
+       LEFT JOIN users u ON u.user_id = c.created_by
+       LEFT JOIN ambulances a ON a.ambulance_id = c.ambulance_id
+       WHERE c.case_id = ?`,
+      [caseId]
+    );
+    if (!c) return res.status(404).json({ error: 'Case not found' });
+
+    const [paramedics] = await pool.query(
+      `SELECT u.username, u.first_name, u.last_name
+       FROM case_paramedics cp JOIN users u ON u.user_id = cp.user_id
+       WHERE cp.case_id = ?`,
+      [caseId]
+    );
+
+    const [patients] = await pool.query(
+      `SELECT p.*, u.username AS submitted_by_username
+       FROM patient_info p
+       LEFT JOIN users u ON u.user_id = p.submitted_by
+       WHERE p.case_id = ? ORDER BY p.patient_id`,
+      [caseId]
+    );
+
+    // ── Helpers ──────────────────────────────────────
+    const fmt = v => (v === null || v === undefined || v === '') ? 'Not recorded' : String(v);
+    const fmtDate = d => {
+      if (!d) return 'Not recorded';
+      const s = typeof d === 'string' ? d : d.toISOString().slice(0, 10);
+      const [y, m, day] = s.split('-');
+      return `${day}/${m}/${y}`;
+    };
+
+    const field = (label, value) => new Paragraph({
+      children: [
+        new TextRun({ text: `${label}:  `, bold: true, size: 22 }),
+        new TextRun({ text: fmt(value), size: 22 }),
+      ],
+      spacing: { after: 120 },
+    });
+
+    const section = title => new Paragraph({
+      text: title,
+      heading: HeadingLevel.HEADING_2,
+      spacing: { before: 480, after: 160 },
+    });
+
+    const subsection = title => new Paragraph({
+      text: title,
+      heading: HeadingLevel.HEADING_3,
+      spacing: { before: 300, after: 120 },
+    });
+
+    const hr = () => new Paragraph({
+      border: { bottom: { color: 'CCCCCC', space: 1, style: BorderStyle.SINGLE, size: 4 } },
+      spacing: { after: 160 },
+      text: '',
+    });
+
+    const italic = text => new Paragraph({
+      children: [new TextRun({ text, italics: true, color: '888888', size: 22 })],
+      spacing: { after: 120 },
+    });
+
+    // ── Build content ────────────────────────────────
+    const ambulanceStr = c.ambulance_code ? `${c.ambulance_code} — ${c.vehicle_name}` : null;
+    const createdByStr = c.created_by_username
+      ? `${c.created_by_username} (${c.cb_first} ${c.cb_last})` : null;
+    const paramedicsStr = paramedics.length
+      ? paramedics.map(p => `${p.username} (${p.first_name} ${p.last_name})`).join(', ') : null;
+
+    const children = [
+      // Title block
+      new Paragraph({
+        children: [new TextRun({ text: 'LASAMBUS — Case Report', bold: true, size: 40 })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 120 },
+      }),
+      new Paragraph({
+        children: [new TextRun({ text: `Case #${c.case_id}`, bold: true, size: 32 })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 120 },
+      }),
+      new Paragraph({
+        children: [new TextRun({
+          text: `Generated: ${new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' })}`,
+          size: 20, color: '666666',
+        })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 480 },
+      }),
+
+      // Case Overview
+      section('Case Overview'), hr(),
+      field('Case ID', c.case_id),
+      field('Date of Incident', fmtDate(c.date_of_incident)),
+      field('Time of Incident', c.time_of_incident),
+      field('Notified By', c.notified_by),
+      field('LGA/LCDA', c.lga_lcda),
+      field('Incident Type', c.incident_type),
+      field('Incident Severity', c.incident_severity),
+      field('Incident Location', c.incident_location),
+      field('Incident Description', c.incident_description),
+      field('Case Status', c.case_status),
+      field('Created By', createdByStr),
+
+      // Dispatch Information
+      section('Dispatch Information'), hr(),
+      field('Dispatch Date', fmtDate(c.dispatch_date)),
+      field('Dispatch Time', c.dispatch_time),
+      field('Ambulance', ambulanceStr),
+      field('Treatment Centre', c.treatment_centre),
+      field('Response Time', c.response_time_mins != null ? `${c.response_time_mins} minutes` : null),
+      field('Paramedics', paramedicsStr),
+      field("Dispatcher's Notes", c.dispatcher_notes),
+
+      // Arrival Information
+      section('Arrival Information'), hr(),
+      field('Arrival Date', fmtDate(c.arrival_date)),
+      field('Arrival Time', c.arrival_time),
+      field('Situation on Arrival', c.situation_on_arrival),
+      field('Transit Time', c.transit_time_mins != null ? `${c.transit_time_mins} minutes` : null),
+      field('Collapsed Buildings', c.collapsed_buildings),
+      field('Buildings Description', c.desc_collapsed_buildings),
+    ];
+
+    // Patients
+    if (!patients.length) {
+      children.push(section('Patient Information'), hr(), italic('No patients recorded for this case.'));
+    } else {
+      patients.forEach((p, i) => {
+        children.push(
+          section(`Patient ${i + 1}${p.full_name ? ' — ' + p.full_name : ''}`), hr(),
+
+          subsection('Patient Information'),
+          field('Full Name', p.full_name),
+          field('Age', p.age),
+          field('Gender', p.gender),
+          field('Home Address', p.home_address),
+          field('State of Origin', p.state_of_origin),
+          field('LGA', p.lga),
+          field('Phone Number', p.phone_number),
+          field('Occupation', p.occupation),
+          field('Situation on Arrival', p.situation_on_arrival),
+          field('Submitted By', p.submitted_by_username),
+
+          subsection('General Assessment'),
+          field('Respiratory Rate', p.respiratory_rate),
+          field('Temperature (°C)', p.temperature),
+          field('Condition on Arrival', p.condition_on_arrival),
+          field('SpO2', p.spo2),
+
+          subsection('Medical History'),
+          field('Gastrointestinal', p.gastrointestinal),
+          field('Known Medical History', p.known_medical_history),
+          field('Cancer Diagnosis', p.cancer_diagnosis),
+          field('Renal/Urological', p.renal_urological),
+
+          subsection('Primary Assessment'),
+          field('Level of Consciousness', p.level_of_consciousness),
+          field('Airway', p.airway),
+          field('Breathing', p.breathing),
+          field('Circulation', p.circulation),
+
+          subsection('Treatment and Interventions'),
+          field('Airway Management', p.airway_management),
+          field('Additional Information (Airway)', p.airway_additional),
+          field('Breathing Assistance', p.breathing_assistance),
+          field('Additional Information (Breathing)', p.breathing_additional),
+          field('Cardiac Care', p.cardiac_care),
+
+          subsection('Destination Hospital'),
+          field('Hospital Name', p.hospital_name),
+          field('Transport Departure Time', p.transport_departure_time),
+          field('Transport Arrival Time', p.transport_arrival_time),
+          field('Outcome at Destination Hospital', p.outcome_at_hospital),
+          field('Hospital Date', fmtDate(p.hospital_date)),
+          field('Hospital Time', p.hospital_time),
+
+          subsection('Additional Information'),
+          field('Designation of Health Care Provider', p.hcp_designation),
+          field('Name of Health Care Provider', p.hcp_name),
+          field('Law Enforcement Involved', p.law_enforcement),
+          field("Patient's Belongings", p.patient_belongings),
+          field('Witnesses', p.witnesses),
+        );
+      });
+    }
+
+    const doc = new Document({ sections: [{ children }] });
+    const buffer = await Packer.toBuffer(doc);
+
+    res.setHeader('Content-Disposition', `attachment; filename="Case-${caseId}-Report.docx"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.send(buffer);
+
+  } catch (err) {
+    console.error('Export error:', err);
+    res.status(500).json({ error: 'Export failed' });
   }
 });
 

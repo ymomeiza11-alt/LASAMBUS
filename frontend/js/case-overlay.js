@@ -70,20 +70,24 @@ function adjustOverlayTabs(role) {
   if (role === 'Dispatcher') {
     show('tab-btn-overview'); show('tab-btn-dispatch');
     hide('tab-btn-notes'); hide('tab-btn-arrival'); hide('tab-btn-patients');
-    hide('btn-edit-case');
+    hide('btn-edit-case'); hide('btn-download-case');
     switchTab('overview', document.getElementById('tab-btn-overview'));
   } else if (role === 'Ambulance Personnel') {
     hide('tab-btn-overview'); hide('tab-btn-dispatch');
     show('tab-btn-notes'); show('tab-btn-arrival'); show('tab-btn-patients');
-    hide('btn-edit-case');
+    hide('btn-edit-case'); hide('btn-download-case');
     switchTab('notes', document.getElementById('tab-btn-notes'));
   } else {
     show('tab-btn-overview'); show('tab-btn-dispatch');
     hide('tab-btn-notes');
     show('tab-btn-arrival'); show('tab-btn-patients');
-    show('btn-edit-case');
+    show('btn-edit-case'); show('btn-download-case');
     switchTab('overview', document.getElementById('tab-btn-overview'));
   }
+}
+
+function downloadCaseReport() {
+  window.location.href = `/api/cases/${currentCaseId}/export`;
 }
 
 function closeCaseOverlay() {
