@@ -273,6 +273,7 @@ function populateArrival(c) {
     document.getElementById('saved-arrival-time').textContent     = c.arrival_time;
     document.getElementById('saved-situation').textContent        = c.situation_on_arrival || '—';
     document.getElementById('saved-situation-desc').textContent   = c.desc_collapsed_buildings || '—';
+    document.getElementById('saved-patient-count').textContent    = c.no_of_patients ?? '—';
 
     const completeBtn = document.getElementById('btn-mark-complete');
     if (completeBtn) completeBtn.classList.toggle('hidden', c.case_status === 'Complete');
@@ -287,6 +288,22 @@ function populateArrival(c) {
     document.getElementById('arrival-situation').value = '';
     document.getElementById('arrival-situation-other').classList.add('hidden');
     document.getElementById('arrival-situation-other').value = '';
+    const patientCountSel = document.getElementById('arrival-patient-count-select');
+    if (patientCountSel) patientCountSel.value = '';
+    const patientCountCustom = document.getElementById('arrival-patient-count-custom');
+    if (patientCountCustom) { patientCountCustom.classList.add('hidden'); patientCountCustom.value = ''; }
+  }
+}
+
+function handlePatientCountSelect(sel) {
+  const custom = document.getElementById('arrival-patient-count-custom');
+  if (!custom) return;
+  if (sel.value === 'more') {
+    custom.classList.remove('hidden');
+    custom.focus();
+  } else {
+    custom.classList.add('hidden');
+    custom.value = '';
   }
 }
 
@@ -308,6 +325,10 @@ async function saveArrival() {
   if (!date || !time || !situation) { alert('Please fill in all required arrival fields.'); return; }
 
   const situationDesc = document.getElementById('arrival-situation-desc')?.value.trim();
+  const patientCountSel = document.getElementById('arrival-patient-count-select')?.value;
+  const noOfPatients = patientCountSel === 'more'
+    ? (parseInt(document.getElementById('arrival-patient-count-custom')?.value) || null)
+    : (patientCountSel ? parseInt(patientCountSel) : null);
 
   try {
     await apiFetch(`/api/cases/${currentCaseId}/arrival`, {
@@ -317,6 +338,7 @@ async function saveArrival() {
         arrival_time:             time,
         situation_on_arrival:     situation,
         desc_collapsed_buildings: situationDesc || null,
+        no_of_patients:           noOfPatients,
       }),
     });
     await loadCaseDetail(currentCaseId);
@@ -381,8 +403,8 @@ async function savePatientFinal() {
     phone_number: g('p-phone'), occupation: g('p-occupation'),
     respiratory_rate: g('p-resp-rate'), temperature: g('p-temp'),
     condition_on_arrival: g('p-condition'), spo2: g('p-spo2'),
-    gastrointestinal: g('p-gastro'), known_medical_history: g('p-medical-hx'),
-    cancer_diagnosis: g('p-cancer'), renal_urological: g('p-renal'),
+    blood_pressure: g('p-blood-pressure'), fbs: g('p-fbs'),
+    rbs: g('p-rbs'), gcs: g('p-gcs'), medications: g('p-medications'),
     level_of_consciousness: g('p-consciousness'), airway: g('p-airway'),
     breathing: g('p-breathing'), circulation: g('p-circulation'),
     airway_management: g('p-airway-mgmt'), airway_additional: g('p-airway-add'),
@@ -411,12 +433,6 @@ async function savePatientFinal() {
 async function loadPatientList(caseId) {
   try {
     const patients = await apiFetch(`/api/cases/${caseId}/patients`);
-
-    const count = patients.length;
-    ['saved-patient-count', 'form-patient-count'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = count;
-    });
 
     const tbody = document.getElementById('patient-list-body');
     if (!patients.length) {
@@ -497,8 +513,8 @@ function openEditPatientModal(p) {
   s('ep-resp-rate', p.respiratory_rate); s('ep-temp', p.temperature);
   s('ep-condition', p.condition_on_arrival); s('ep-spo2', p.spo2);
 
-  s('ep-gastro', p.gastrointestinal);     s('ep-medical-hx', p.known_medical_history);
-  s('ep-cancer', p.cancer_diagnosis);     s('ep-renal', p.renal_urological);
+  s('ep-blood-pressure', p.blood_pressure); s('ep-fbs', p.fbs);
+  s('ep-rbs', p.rbs); s('ep-gcs', p.gcs); s('ep-medications', p.medications);
 
   s('ep-consciousness', p.level_of_consciousness); s('ep-airway', p.airway);
   s('ep-breathing', p.breathing);                  s('ep-circulation', p.circulation);
@@ -564,8 +580,8 @@ async function saveEditPatient() {
     phone_number: g('ep-phone'), occupation: g('ep-occupation'),
     respiratory_rate: g('ep-resp-rate'), temperature: g('ep-temp'),
     condition_on_arrival: g('ep-condition'), spo2: g('ep-spo2'),
-    gastrointestinal: g('ep-gastro'), known_medical_history: g('ep-medical-hx'),
-    cancer_diagnosis: g('ep-cancer'), renal_urological: g('ep-renal'),
+    blood_pressure: g('ep-blood-pressure'), fbs: g('ep-fbs'),
+    rbs: g('ep-rbs'), gcs: g('ep-gcs'), medications: g('ep-medications'),
     level_of_consciousness: g('ep-consciousness'), airway: g('ep-airway'),
     breathing: g('ep-breathing'), circulation: g('ep-circulation'),
     airway_management: g('ep-airway-mgmt'), airway_additional: g('ep-airway-add'),

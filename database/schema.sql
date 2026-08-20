@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS cases (
   situation_on_arrival VARCHAR(255),
   collapsed_buildings      SMALLINT UNSIGNED DEFAULT NULL,
   desc_collapsed_buildings TEXT              DEFAULT NULL,
+  no_of_patients           SMALLINT UNSIGNED DEFAULT NULL,
   response_time_mins  SMALLINT UNSIGNED,    -- arrival − time_of_incident
   transit_time_mins   SMALLINT UNSIGNED,    -- arrival − dispatch
   case_status         ENUM('Active','Complete','Cancelled') NOT NULL DEFAULT 'Active',
@@ -118,11 +119,12 @@ CREATE TABLE IF NOT EXISTS patient_info (
   condition_on_arrival ENUM('Stable','Unstable'),
   spo2                VARCHAR(30),
 
-  -- Page 3: Medical History
-  gastrointestinal    TEXT,
-  known_medical_history TEXT,
-  cancer_diagnosis    TEXT,
-  renal_urological    TEXT,
+  -- Page 3: Patient Vitals
+  blood_pressure      VARCHAR(50),
+  fbs                 VARCHAR(50),
+  rbs                 VARCHAR(50),
+  gcs                 VARCHAR(50),
+  medications         TEXT,
 
   -- Page 4: Primary Assessment
   level_of_consciousness TEXT,

@@ -485,7 +485,20 @@
             </div>
             <div class="form-group">
               <label>No. of Patients</label>
-              <p id="form-patient-count" style="margin:4px 0 0; font-weight:600; color:#333;">—</p>
+              <select id="arrival-patient-count-select" onchange="handlePatientCountSelect(this)">
+                <option value="">-- Select --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="more">More...</option>
+              </select>
+              <input type="number" id="arrival-patient-count-custom" class="hidden" min="10" placeholder="Enter number of patients" style="margin-top:8px;" />
             </div>
             <button type="button" class="btn btn-primary mt-16" onclick="saveArrival()">Arrived</button>
           </div>
@@ -559,7 +572,7 @@
       <div class="form-progress" id="patient-progress">
         <div class="progress-step current"><div class="step-dot">1</div><div class="step-label">Patient Info</div></div>
         <div class="progress-step"><div class="step-dot">2</div><div class="step-label">Assessment</div></div>
-        <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Medical Hx</div></div>
+        <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Vitals</div></div>
         <div class="progress-step"><div class="step-dot">4</div><div class="step-label">Primary Assess</div></div>
         <div class="progress-step"><div class="step-dot">5</div><div class="step-label">Treatment</div></div>
         <div class="progress-step"><div class="step-dot">6</div><div class="step-label">Hospital</div></div>
@@ -624,11 +637,12 @@
 
         <!-- Page 3 -->
         <div class="patient-page" id="patient-page-3">
-          <h3 class="section-heading mb-16">Medical History</h3>
-          <div class="form-group"><label>Gastrointestinal</label><input type="text" id="p-gastro" /></div>
-          <div class="form-group"><label>Known Medical History</label><input type="text" id="p-medical-hx" placeholder="e.g. Hypertension, Diabetes" /></div>
-          <div class="form-group"><label>Previous Cancer Diagnosis (Specify type)</label><input type="text" id="p-cancer" /></div>
-          <div class="form-group"><label>Renal/Urological</label><input type="text" id="p-renal" /></div>
+          <h3 class="section-heading mb-16">Patient Vitals</h3>
+          <div class="form-group"><label>B/P (Blood Pressure)</label><input type="text" id="p-blood-pressure" placeholder="e.g. 120/80 mmHg" /></div>
+          <div class="form-group"><label>FBS (Fasting Blood Sugar)</label><input type="text" id="p-fbs" placeholder="e.g. 5.5 mmol/L" /></div>
+          <div class="form-group"><label>RBS (Random Blood Sugar)</label><input type="text" id="p-rbs" placeholder="e.g. 7.2 mmol/L" /></div>
+          <div class="form-group"><label>GCS (Glasgow Coma Scale)</label><input type="text" id="p-gcs" placeholder="e.g. 15/15" /></div>
+          <div class="form-group"><label>Medications</label><textarea id="p-medications" placeholder="List any medications administered or prescribed..."></textarea></div>
         </div>
 
         <!-- Page 4 -->
@@ -698,7 +712,7 @@
       <div class="form-progress" id="ep-progress">
         <div class="progress-step current"><div class="step-dot">1</div><div class="step-label">Patient Info</div></div>
         <div class="progress-step"><div class="step-dot">2</div><div class="step-label">Assessment</div></div>
-        <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Medical Hx</div></div>
+        <div class="progress-step"><div class="step-dot">3</div><div class="step-label">Vitals</div></div>
         <div class="progress-step"><div class="step-dot">4</div><div class="step-label">Primary Assess</div></div>
         <div class="progress-step"><div class="step-dot">5</div><div class="step-label">Treatment</div></div>
         <div class="progress-step"><div class="step-dot">6</div><div class="step-label">Hospital</div></div>
@@ -763,11 +777,12 @@
 
         <!-- Page 3 -->
         <div class="ep-page" id="ep-page-3">
-          <h3 class="section-heading mb-16">Medical History</h3>
-          <div class="form-group"><label>Gastrointestinal</label><input type="text" id="ep-gastro" /></div>
-          <div class="form-group"><label>Known Medical History</label><input type="text" id="ep-medical-hx" placeholder="e.g. Hypertension, Diabetes" /></div>
-          <div class="form-group"><label>Previous Cancer Diagnosis (Specify type)</label><input type="text" id="ep-cancer" /></div>
-          <div class="form-group"><label>Renal/Urological</label><input type="text" id="ep-renal" /></div>
+          <h3 class="section-heading mb-16">Patient Vitals</h3>
+          <div class="form-group"><label>B/P (Blood Pressure)</label><input type="text" id="ep-blood-pressure" placeholder="e.g. 120/80 mmHg" /></div>
+          <div class="form-group"><label>FBS (Fasting Blood Sugar)</label><input type="text" id="ep-fbs" placeholder="e.g. 5.5 mmol/L" /></div>
+          <div class="form-group"><label>RBS (Random Blood Sugar)</label><input type="text" id="ep-rbs" placeholder="e.g. 7.2 mmol/L" /></div>
+          <div class="form-group"><label>GCS (Glasgow Coma Scale)</label><input type="text" id="ep-gcs" placeholder="e.g. 15/15" /></div>
+          <div class="form-group"><label>Medications</label><textarea id="ep-medications" placeholder="List any medications administered or prescribed..."></textarea></div>
         </div>
 
         <!-- Page 4 -->

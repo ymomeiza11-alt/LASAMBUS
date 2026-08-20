@@ -327,7 +327,7 @@ router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), a
 router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
   const {
     arrival_date, arrival_time, situation_on_arrival,
-    collapsed_buildings, desc_collapsed_buildings,
+    collapsed_buildings, desc_collapsed_buildings, no_of_patients,
   } = req.body;
   if (!arrival_date || !arrival_time) return res.status(400).json({ error: 'arrival_date and arrival_time required' });
 
@@ -353,14 +353,19 @@ router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Person
     const collapsedVal = (collapsed_buildings !== undefined && collapsed_buildings !== '' && collapsed_buildings !== null)
       ? parseInt(collapsed_buildings) : null;
 
+    const numPatients = (no_of_patients !== undefined && no_of_patients !== '' && no_of_patients !== null)
+      ? parseInt(no_of_patients) : null;
+
     await conn.query(
       `UPDATE cases SET arrival_date = ?, arrival_time = ?, situation_on_arrival = ?,
                         collapsed_buildings = ?, desc_collapsed_buildings = ?,
+                        no_of_patients = ?,
                         response_time_mins = ?, transit_time_mins = ?
                         WHERE case_id = ?`,
       [
         arrival_date, arrival_time, situation_on_arrival || null,
         collapsedVal, desc_collapsed_buildings || null,
+        numPatients,
         responseMins, transitMins, req.params.id,
       ]
     );
@@ -560,8 +565,8 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
       field('Arrival Time', c.arrival_time),
       field('Situation on Arrival', c.situation_on_arrival),
       field('Transit Time', c.transit_time_mins != null ? `${c.transit_time_mins} minutes` : null),
-      field('Collapsed Buildings', c.collapsed_buildings),
-      field('Buildings Description', c.desc_collapsed_buildings),
+      field('No. of Patients', c.no_of_patients),
+      field('Description of Situation', c.desc_collapsed_buildings),
     ];
 
     // Patients
@@ -590,11 +595,12 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
           field('Condition on Arrival', p.condition_on_arrival),
           field('SpO2', p.spo2),
 
-          subsection('Medical History'),
-          field('Gastrointestinal', p.gastrointestinal),
-          field('Known Medical History', p.known_medical_history),
-          field('Cancer Diagnosis', p.cancer_diagnosis),
-          field('Renal/Urological', p.renal_urological),
+          subsection('Patient Vitals'),
+          field('B/P (Blood Pressure)', p.blood_pressure),
+          field('FBS (Fasting Blood Sugar)', p.fbs),
+          field('RBS (Random Blood Sugar)', p.rbs),
+          field('GCS (Glasgow Coma Scale)', p.gcs),
+          field('Medications', p.medications),
 
           subsection('Primary Assessment'),
           field('Level of Consciousness', p.level_of_consciousness),
@@ -665,7 +671,7 @@ router.post('/:id/patients', requireLogin, requireRole('Admin', 'Ambulance Perso
   const {
     full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
     respiratory_rate, temperature, condition_on_arrival, spo2,
-    gastrointestinal, known_medical_history, cancer_diagnosis, renal_urological,
+    blood_pressure, fbs, rbs, gcs, medications,
     level_of_consciousness, airway, breathing, circulation,
     airway_management, airway_additional, breathing_assistance, breathing_additional, cardiac_care,
     hospital_name, transport_departure_time, transport_arrival_time, outcome_at_hospital, hospital_date, hospital_time,
@@ -679,17 +685,17 @@ router.post('/:id/patients', requireLogin, requireRole('Admin', 'Ambulance Perso
       `INSERT INTO patient_info
          (case_id, full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
           respiratory_rate, temperature, condition_on_arrival, spo2,
-          gastrointestinal, known_medical_history, cancer_diagnosis, renal_urological,
+          blood_pressure, fbs, rbs, gcs, medications,
           level_of_consciousness, airway, breathing, circulation,
           airway_management, airway_additional, breathing_assistance, breathing_additional, cardiac_care,
           hospital_name, transport_departure_time, transport_arrival_time, outcome_at_hospital, hospital_date, hospital_time,
           hcp_designation, hcp_name, law_enforcement, patient_belongings, witnesses,
           situation_on_arrival, submitted_by)
-       VALUES (${Array(39).fill('?').join(',')})`,
+       VALUES (${Array(40).fill('?').join(',')})`,
       [
         req.params.id, n(full_name), n(age), n(gender), n(home_address), n(state_of_origin), n(lga), n(phone_number), n(occupation),
         n(respiratory_rate), n(temperature), n(condition_on_arrival), n(spo2),
-        n(gastrointestinal), n(known_medical_history), n(cancer_diagnosis), n(renal_urological),
+        n(blood_pressure), n(fbs), n(rbs), n(gcs), n(medications),
         n(level_of_consciousness), n(airway), n(breathing), n(circulation),
         n(airway_management), n(airway_additional), n(breathing_assistance), n(breathing_additional), n(cardiac_care),
         n(hospital_name), n(transport_departure_time), n(transport_arrival_time), n(outcome_at_hospital), n(hospital_date), n(hospital_time),
@@ -727,7 +733,7 @@ router.put('/:id/patients/:pid', requireLogin, requireRole('Admin', 'Ambulance P
   const {
     full_name, age, gender, home_address, state_of_origin, lga, phone_number, occupation,
     respiratory_rate, temperature, condition_on_arrival, spo2,
-    gastrointestinal, known_medical_history, cancer_diagnosis, renal_urological,
+    blood_pressure, fbs, rbs, gcs, medications,
     level_of_consciousness, airway, breathing, circulation,
     airway_management, airway_additional, breathing_assistance, breathing_additional, cardiac_care,
     hospital_name, transport_departure_time, transport_arrival_time, outcome_at_hospital, hospital_date, hospital_time,
@@ -742,7 +748,7 @@ router.put('/:id/patients/:pid', requireLogin, requireRole('Admin', 'Ambulance P
          full_name = ?, age = ?, gender = ?, home_address = ?, state_of_origin = ?, lga = ?,
          phone_number = ?, occupation = ?,
          respiratory_rate = ?, temperature = ?, condition_on_arrival = ?, spo2 = ?,
-         gastrointestinal = ?, known_medical_history = ?, cancer_diagnosis = ?, renal_urological = ?,
+         blood_pressure = ?, fbs = ?, rbs = ?, gcs = ?, medications = ?,
          level_of_consciousness = ?, airway = ?, breathing = ?, circulation = ?,
          airway_management = ?, airway_additional = ?, breathing_assistance = ?, breathing_additional = ?,
          cardiac_care = ?,
@@ -755,7 +761,7 @@ router.put('/:id/patients/:pid', requireLogin, requireRole('Admin', 'Ambulance P
         n(full_name), n(age), n(gender), n(home_address), n(state_of_origin), n(lga),
         n(phone_number), n(occupation),
         n(respiratory_rate), n(temperature), n(condition_on_arrival), n(spo2),
-        n(gastrointestinal), n(known_medical_history), n(cancer_diagnosis), n(renal_urological),
+        n(blood_pressure), n(fbs), n(rbs), n(gcs), n(medications),
         n(level_of_consciousness), n(airway), n(breathing), n(circulation),
         n(airway_management), n(airway_additional), n(breathing_assistance), n(breathing_additional),
         n(cardiac_care),
