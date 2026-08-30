@@ -25,7 +25,7 @@ router.get('/', requireLogin, async (req, res) => {
       `SELECT
          COUNT(*)                                                   AS totalCases,
          SUM(case_status = 'Complete')                             AS completed,
-         SUM(case_status = 'Cancelled')                           AS cancelled,
+         SUM(case_status = 'Closed')                              AS closed,
          AVG(CASE WHEN arrival_time IS NOT NULL
                THEN response_time_mins END)                        AS avgResponse,
          SUM(incident_type = 'Road Traffic Accident')             AS totalRTAs,
@@ -66,7 +66,7 @@ router.get('/', requireLogin, async (req, res) => {
 
     const totalCases  = parseInt(stats.totalCases)  || 0;
     const completed   = parseInt(stats.completed)   || 0;
-    const cancelled   = parseInt(stats.cancelled)   || 0;
+    const closed      = parseInt(stats.closed)      || 0;
     const successRate = totalCases > 0 ? Math.round((completed / totalCases) * 100) : 0;
     const avgMonthly  = monthCount > 0 ? (totalCases / monthCount).toFixed(1) : '0';
 
@@ -85,7 +85,7 @@ router.get('/', requireLogin, async (req, res) => {
     res.json({
       totalCases,
       completed,
-      cancelled,
+      closed,
       successRate,
       avgMonthly,
       totalPatients,

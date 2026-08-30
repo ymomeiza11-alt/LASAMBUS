@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS cases (
   no_of_patients           SMALLINT UNSIGNED DEFAULT NULL,
   response_time_mins  SMALLINT UNSIGNED,    -- arrival − time_of_incident
   transit_time_mins   SMALLINT UNSIGNED,    -- arrival − dispatch
-  case_status         ENUM('Active','Complete','Cancelled') NOT NULL DEFAULT 'Active',
+  case_status         ENUM('Active','Complete','Closed') NOT NULL DEFAULT 'Active',
   created_by          INT          DEFAULT NULL,
   created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (ambulance_id) REFERENCES ambulances(ambulance_id) ON DELETE SET NULL,
@@ -96,6 +96,16 @@ CREATE TABLE IF NOT EXISTS case_paramedics (
   UNIQUE KEY uq_case_user (case_id, user_id),
   FOREIGN KEY (case_id) REFERENCES cases(case_id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- ── Case–Ambulance assignments (many-to-many) ─────────
+CREATE TABLE IF NOT EXISTS case_ambulances (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  case_id      INT NOT NULL,
+  ambulance_id INT NOT NULL,
+  UNIQUE KEY uq_case_ambulance (case_id, ambulance_id),
+  FOREIGN KEY (case_id) REFERENCES cases(case_id) ON DELETE CASCADE,
+  FOREIGN KEY (ambulance_id) REFERENCES ambulances(ambulance_id) ON DELETE CASCADE
 );
 
 -- ── Patient Information (7-page form) ─────────────────
@@ -161,4 +171,27 @@ CREATE TABLE IF NOT EXISTS patient_info (
 
   FOREIGN KEY (case_id)      REFERENCES cases(case_id)   ON DELETE CASCADE,
   FOREIGN KEY (submitted_by) REFERENCES users(user_id)   ON DELETE SET NULL
+);
+
+-- ── Case Photos (incident photos, per case) ───────────
+CREATE TABLE IF NOT EXISTS case_photos (
+  photo_id   INT AUTO_INCREMENT PRIMARY KEY,
+  case_id    INT NOT NULL,
+  file_path  VARCHAR(255) NOT NULL,
+  original_filename VARCHAR(255),
+  uploaded_by INT DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (case_id) REFERENCES cases(case_id) ON DELETE CASCADE,
+  FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- ── Archives (admin-only photo archive) ───────────────
+CREATE TABLE IF NOT EXISTS archives (
+  archive_id INT AUTO_INCREMENT PRIMARY KEY,
+  title      VARCHAR(255),
+  file_path  VARCHAR(255) NOT NULL,
+  original_filename VARCHAR(255),
+  uploaded_by INT DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE SET NULL
 );

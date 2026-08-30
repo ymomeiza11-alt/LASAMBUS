@@ -4,6 +4,7 @@ const CASES_LIMIT = 50;
 let casesTotal    = 0;
 let casesFilters  = { date: null, lgas: [], status: null };
 const ncSelectedParamedics = [];
+const ncSelectedAmbulances = [];
 
 // ── Cases list ────────────────────────────────────────
 async function loadCases() {
@@ -135,8 +136,10 @@ function openNewCaseOverlay() {
   document.getElementById('nc-dispatch-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   ncSelectedParamedics.length = 0;
   document.getElementById('nc-paramedic-list').innerHTML = '';
+  ncSelectedAmbulances.length = 0;
+  document.getElementById('nc-ambulance-list').innerHTML = '';
   loadAvailableParamedicsDropdown('nc-paramedic-dropdown');
-  loadAvailableAmbulancesDropdown('nc-ambulance');
+  loadAvailableAmbulancesDropdown('nc-ambulance-dropdown');
   document.getElementById('new-case-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -168,6 +171,28 @@ function ncRemoveParamedic(val, btn) {
   btn.parentElement.remove();
 }
 
+function ncAddAmbulance() {
+  const dropdown = document.getElementById('nc-ambulance-dropdown');
+  dropdown.classList.toggle('hidden');
+  dropdown.onchange = function () {
+    const val  = this.value;
+    const text = this.options[this.selectedIndex].text;
+    if (!val || ncSelectedAmbulances.find(a => a.id == val)) return;
+    ncSelectedAmbulances.push({ id: val, label: text });
+    const tag = document.createElement('span');
+    tag.className = 'filter-tag';
+    tag.innerHTML = `${text} <button class="filter-tag-remove" onclick="ncRemoveAmbulance('${val}', this)">×</button>`;
+    document.getElementById('nc-ambulance-list').appendChild(tag);
+    this.value = '';
+  };
+}
+
+function ncRemoveAmbulance(val, btn) {
+  const idx = ncSelectedAmbulances.findIndex(a => a.id == val);
+  if (idx > -1) ncSelectedAmbulances.splice(idx, 1);
+  btn.parentElement.remove();
+}
+
 document.getElementById('newCaseForm')?.addEventListener('submit', async function (e) {
   e.preventDefault();
   const required = [
@@ -187,8 +212,6 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
   });
   if (!valid) return;
 
-  const ambulanceSelect = document.getElementById('nc-ambulance');
-
   const payload = {
     date_of_incident:     document.getElementById('nc-date').value,
     time_of_incident:     document.getElementById('nc-time').value,
@@ -204,10 +227,10 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
   const dispatchTime = document.getElementById('nc-dispatch-time').value;
   if (dispatchTime) payload.dispatch_time = dispatchTime;
 
-  const ambulanceId = ambulanceSelect?.value;
-  if (ambulanceId) payload.ambulance_id = parseInt(ambulanceId);
+  const ambulanceIds = ncSelectedAmbulances.map(a => parseInt(a.id)).filter(id => !isNaN(id));
+  if (ambulanceIds.length > 0) payload.ambulance_ids = ambulanceIds;
 
-  const treatmentCentre = document.getElementById('nc-treatment-centre')?.value;
+  const treatmentCentre = getOtherValue('nc-treatment-centre', 'nc-treatment-centre-other');
   if (treatmentCentre) payload.treatment_centre = treatmentCentre;
 
   const paramedicIds = ncSelectedParamedics.map(p => parseInt(p.id)).filter(id => !isNaN(id));

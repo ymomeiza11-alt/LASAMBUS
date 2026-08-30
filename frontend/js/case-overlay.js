@@ -46,6 +46,7 @@ async function loadAvailableAmbulancesDropdown(selectId) {
 // ── State ─────────────────────────────────────────────
 let currentCaseId       = null;
 const selectedParamedics = [];
+const selectedAmbulances = [];
 let currentPatientPage  = 1;
 const totalPatientPages = 7;
 let viewMorePatientId   = null;
@@ -69,18 +70,18 @@ function adjustOverlayTabs(role) {
   const hide = id => document.getElementById(id)?.classList.add('hidden');
   if (role === 'Dispatcher') {
     show('tab-btn-overview'); show('tab-btn-dispatch');
-    hide('tab-btn-notes'); hide('tab-btn-arrival'); hide('tab-btn-patients');
+    hide('tab-btn-notes'); hide('tab-btn-arrival'); hide('tab-btn-patients'); hide('tab-btn-photos');
     hide('btn-edit-case'); hide('btn-download-case');
     switchTab('overview', document.getElementById('tab-btn-overview'));
   } else if (role === 'Ambulance Personnel') {
     hide('tab-btn-overview'); hide('tab-btn-dispatch');
-    show('tab-btn-notes'); show('tab-btn-arrival'); show('tab-btn-patients');
+    show('tab-btn-notes'); show('tab-btn-arrival'); show('tab-btn-patients'); show('tab-btn-photos');
     hide('btn-edit-case'); hide('btn-download-case');
     switchTab('notes', document.getElementById('tab-btn-notes'));
   } else {
     show('tab-btn-overview'); show('tab-btn-dispatch');
     hide('tab-btn-notes');
-    show('tab-btn-arrival'); show('tab-btn-patients');
+    show('tab-btn-arrival'); show('tab-btn-patients'); show('tab-btn-photos');
     show('btn-edit-case'); show('btn-download-case');
     switchTab('overview', document.getElementById('tab-btn-overview'));
   }
@@ -121,7 +122,7 @@ async function loadCaseDetail(caseId) {
     document.getElementById('ov-situation').textContent        = c.situation_on_arrival || '—';
 
     const badge = document.getElementById('ov-status-badge');
-    const map   = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
+    const map   = { Active: 'status-active', Complete: 'status-complete', Closed: 'status-cancelled' };
     badge.className  = `status-badge ${map[c.case_status] || 'status-active'}`;
     badge.textContent = c.case_status === 'Complete' ? 'Completed' : c.case_status;
 
@@ -152,6 +153,7 @@ async function loadCaseDetail(caseId) {
     populateDispatch(c);
     populateArrival(c);
     loadPatientList(caseId);
+    loadCasePhotos(caseId);
   } catch (err) {
     console.error('Load case detail error:', err);
   }
@@ -198,7 +200,7 @@ function populateDispatch(c) {
     document.getElementById('saved-dispatch-date').textContent = formatDate(c.dispatch_date);
     document.getElementById('saved-dispatch-time').textContent = c.dispatch_time;
     document.getElementById('saved-ambulance').textContent =
-      c.ambulance_code ? `${c.ambulance_code} — ${c.vehicle_name}` : '—';
+      (c.ambulances || []).map(a => `${a.ambulance_code} — ${a.vehicle_name}`).join(', ') || '—';
     document.getElementById('saved-treatment-centre').textContent = c.treatment_centre || '—';
     document.getElementById('saved-paramedics').textContent =
       (c.paramedics || []).map(p => `${p.username} (${p.first_name} ${p.last_name})`).join(', ') || '—';
@@ -208,8 +210,10 @@ function populateDispatch(c) {
     document.getElementById('dispatch-date').value = c.date_of_incident || '';
     selectedParamedics.length = 0;
     document.getElementById('paramedic-selected-list').innerHTML = '';
+    selectedAmbulances.length = 0;
+    document.getElementById('ambulance-selected-list').innerHTML = '';
     loadAvailableParamedicsDropdown('paramedic-select-dropdown');
-    loadAvailableAmbulancesDropdown('dispatch-ambulance');
+    loadAvailableAmbulancesDropdown('ambulance-select-dropdown');
   }
 }
 
@@ -235,17 +239,38 @@ function removeParamedic(val, btn) {
   btn.parentElement.remove();
 }
 
+function addAmbulanceRow() {
+  const dropdown = document.getElementById('ambulance-select-dropdown');
+  dropdown.classList.toggle('hidden');
+  dropdown.onchange = function () {
+    const val  = this.value;
+    const text = this.options[this.selectedIndex].text;
+    if (!val || selectedAmbulances.find(a => a.id == val)) return;
+    selectedAmbulances.push({ id: val, label: text });
+    const tag = document.createElement('span');
+    tag.className = 'filter-tag';
+    tag.innerHTML = `${text} <button class="filter-tag-remove" onclick="removeAmbulance('${val}', this)">×</button>`;
+    document.getElementById('ambulance-selected-list').appendChild(tag);
+    this.value = '';
+  };
+}
+
+function removeAmbulance(val, btn) {
+  const idx = selectedAmbulances.findIndex(a => a.id == val);
+  if (idx > -1) selectedAmbulances.splice(idx, 1);
+  btn.parentElement.remove();
+}
+
 async function saveDispatch() {
-  const date      = document.getElementById('dispatch-date').value;
-  const time      = document.getElementById('dispatch-time').value;
-  const ambulance = document.getElementById('dispatch-ambulance').value;
+  const date = document.getElementById('dispatch-date').value;
+  const time = document.getElementById('dispatch-time').value;
   if (!date || !time) { alert('Please fill in date and time.'); return; }
 
   const payload = {
     dispatch_date:    date,
     dispatch_time:    time,
-    ambulance_id:     ambulance || null,
-    treatment_centre: document.getElementById('dispatch-treatment-centre').value || null,
+    ambulance_ids:    selectedAmbulances.map(a => parseInt(a.id)),
+    treatment_centre: getOtherValue('dispatch-treatment-centre', 'dispatch-treatment-centre-other'),
     paramedic_ids:    selectedParamedics.map(p => parseInt(p.id)),
   };
   try {
@@ -275,8 +300,12 @@ function populateArrival(c) {
     document.getElementById('saved-situation-desc').textContent   = c.desc_collapsed_buildings || '—';
     document.getElementById('saved-patient-count').textContent    = c.no_of_patients ?? '—';
 
+    const isDone = c.case_status === 'Complete' || c.case_status === 'Closed';
+    const canCloseShortcut = ['Nothing Sighted', 'No Victim'].includes(c.situation_on_arrival);
     const completeBtn = document.getElementById('btn-mark-complete');
-    if (completeBtn) completeBtn.classList.toggle('hidden', c.case_status === 'Complete');
+    const closeBtn    = document.getElementById('btn-close-case');
+    if (completeBtn) completeBtn.classList.toggle('hidden', isDone || canCloseShortcut);
+    if (closeBtn)    closeBtn.classList.toggle('hidden', isDone || !canCloseShortcut);
   } else {
     document.getElementById('arrival-form').classList.remove('hidden');
     document.getElementById('arrival-saved').classList.add('hidden');
@@ -315,6 +344,17 @@ async function markCaseComplete() {
     if (typeof loadDashboard === 'function') loadDashboard();
   } catch (err) {
     alert('Could not mark case as complete: ' + err.message);
+  }
+}
+
+async function closeCase() {
+  try {
+    await apiFetch(`/api/cases/${currentCaseId}/close`, { method: 'POST' });
+    await loadCaseDetail(currentCaseId);
+    if (typeof loadCases     === 'function') loadCases();
+    if (typeof loadDashboard === 'function') loadDashboard();
+  } catch (err) {
+    alert('Could not close case: ' + err.message);
   }
 }
 
@@ -604,6 +644,44 @@ async function saveEditPatient() {
     loadPatientList(currentCaseId);
   } catch (err) {
     alert('Could not save patient: ' + err.message);
+  }
+}
+
+// ── Photos tab ────────────────────────────────────────
+async function loadCasePhotos(caseId) {
+  const gallery = document.getElementById('photo-gallery');
+  if (!gallery) return;
+  try {
+    const photos = await apiFetch(`/api/cases/${caseId}/photos`);
+    if (!photos.length) {
+      gallery.innerHTML = '<p style="color:#888; font-style:italic;">No photos uploaded yet.</p>';
+      return;
+    }
+    gallery.innerHTML = photos.map(p => `
+      <a class="photo-gallery-item" href="/api/cases/${caseId}/photos/${p.photo_id}/file" target="_blank" rel="noopener">
+        <img src="/api/cases/${caseId}/photos/${p.photo_id}/file" alt="${p.original_filename || 'Case photo'}" />
+      </a>`).join('');
+  } catch (err) {
+    console.error('Photo list error:', err);
+  }
+}
+
+async function uploadCasePhotos() {
+  const input = document.getElementById('photo-upload-input');
+  if (!input.files.length) return;
+  const formData = new FormData();
+  Array.from(input.files).forEach(f => formData.append('photos', f));
+
+  try {
+    const res = await fetch(`/api/cases/${currentCaseId}/photos`, { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(err.error || 'Upload failed');
+    }
+    input.value = '';
+    loadCasePhotos(currentCaseId);
+  } catch (err) {
+    alert('Photo upload failed: ' + err.message);
   }
 }
 

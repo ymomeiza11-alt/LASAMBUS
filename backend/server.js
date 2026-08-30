@@ -54,6 +54,7 @@ app.use('/api/dashboard',     require('./routes/dashboard'));
 app.use('/api/report',        require('./routes/report'));
 app.use('/api/export',        require('./routes/export'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/archives',      require('./routes/archives'));
 
 // ── Static frontend ───────────────────────────────────
 app.use(express.static(path.join(__dirname, '../frontend')));

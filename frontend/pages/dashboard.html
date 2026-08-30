@@ -208,16 +208,18 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Select Ambulance</label>
-            <select id="nc-ambulance">
+            <label>Ambulances</label>
+            <div id="nc-ambulance-list" style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
+            <button type="button" class="btn btn-outline" style="font-size:0.82rem; padding:5px 12px;" onclick="ncAddAmbulance()">
+              <i class="bi bi-plus-lg"></i> Add Ambulance
+            </button>
+            <select id="nc-ambulance-dropdown" class="hidden" style="margin-top:8px; max-width:260px;">
               <option value="">-- Select Available Ambulance --</option>
-              <option>AMB-001 — Toyota HiAce</option>
-              <option>AMB-002 — Ford Transit</option>
             </select>
           </div>
           <div class="form-group">
             <label>Treatment Centre</label>
-            <select id="nc-treatment-centre">
+            <select id="nc-treatment-centre" onchange="handleOtherSelect(this, 'nc-treatment-centre-other')">
               <option value="">-- Select Treatment Centre --</option>
               <option>Lagos Island Maternal Hospital (Lagos Island)</option>
               <option>Ayinke House (Institute of Maternal and Child Health)</option>
@@ -243,7 +245,9 @@
               <option>General Hospital Isolo</option>
               <option>General Hospital Alimosho</option>
               <option>General Hospital Imota</option>
+              <option>Others</option>
             </select>
+            <input type="text" id="nc-treatment-centre-other" class="other-text hidden" style="margin-top:8px;" placeholder="Please specify the treatment centre" />
           </div>
           <div class="form-group">
             <label>Paramedics</label>
@@ -285,6 +289,7 @@
         <button class="inpage-tab hidden" id="tab-btn-notes" onclick="switchTab('notes', this)">Dispatcher Notes</button>
         <button class="inpage-tab" id="tab-btn-arrival" onclick="switchTab('arrival', this)">Arrival</button>
         <button class="inpage-tab" id="tab-btn-patients" onclick="switchTab('patient-list', this)">Patients</button>
+        <button class="inpage-tab" id="tab-btn-photos" onclick="switchTab('photos', this)">Photos</button>
       </div>
 
       <!-- Overview Tab -->
@@ -348,7 +353,7 @@
             <div class="form-group">
               <label>Case Status</label>
               <select id="edit-status">
-                <option>Active</option><option>Complete</option><option>Cancelled</option>
+                <option>Active</option><option>Complete</option><option>Closed</option>
               </select>
             </div>
           </div>
@@ -379,14 +384,18 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Select Ambulance</label>
-              <select id="dispatch-ambulance">
+              <label>Ambulances</label>
+              <div id="ambulance-selected-list" style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px;"></div>
+              <button type="button" class="btn btn-outline" style="font-size:0.82rem; padding:5px 12px;" onclick="addAmbulanceRow()">
+                <i class="bi bi-plus-lg"></i> Add Ambulance
+              </button>
+              <select id="ambulance-select-dropdown" class="hidden" style="margin-top:8px; max-width:260px;">
                 <option value="">-- Select Available Ambulance --</option>
               </select>
             </div>
             <div class="form-group">
               <label>Treatment Centre</label>
-              <select id="dispatch-treatment-centre">
+              <select id="dispatch-treatment-centre" onchange="handleOtherSelect(this, 'dispatch-treatment-centre-other')">
                 <option value="">-- Select Treatment Centre --</option>
                 <option>Lagos Island Maternal Hospital (Lagos Island)</option>
                 <option>Ayinke House (Institute of Maternal and Child Health)</option>
@@ -412,7 +421,9 @@
                 <option>General Hospital Isolo</option>
                 <option>General Hospital Alimosho</option>
                 <option>General Hospital Imota</option>
+                <option>Others</option>
               </select>
+              <input type="text" id="dispatch-treatment-centre-other" class="other-text hidden" style="margin-top:8px;" placeholder="Please specify the treatment centre" />
             </div>
             <div class="form-group">
               <label>Paramedics</label>
@@ -513,6 +524,9 @@
             <button type="button" class="btn btn-primary mt-16 hidden" id="btn-mark-complete" onclick="markCaseComplete()">
               Mark as Complete
             </button>
+            <button type="button" class="btn btn-primary mt-16 hidden" id="btn-close-case" onclick="closeCase()">
+              Close Case
+            </button>
           </div>
         </div>
       </div>
@@ -541,6 +555,24 @@
               <tbody id="patient-list-body">
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos Tab -->
+      <div class="tab-pane" id="tab-photos">
+        <div class="card">
+          <div class="flex justify-between align-center mb-16">
+            <h3 class="section-heading" style="margin:0;">Photos</h3>
+            <div>
+              <input type="file" id="photo-upload-input" accept="image/*" multiple class="hidden" onchange="uploadCasePhotos()" />
+              <button class="btn btn-primary" onclick="document.getElementById('photo-upload-input').click()">
+                <i class="bi bi-camera"></i> Upload Photo(s)
+              </button>
+            </div>
+          </div>
+          <div id="photo-gallery" class="photo-gallery">
+            <p style="color:#888; font-style:italic;">No photos uploaded yet.</p>
           </div>
         </div>
       </div>

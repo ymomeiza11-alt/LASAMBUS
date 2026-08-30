@@ -4,7 +4,7 @@
 --
 --  Clears all existing users then inserts 6 new users:
 --    - 2 Dispatchers     -> user_id 1-2
---    - 2 Amb. Supervisors -> user_id 3-4
+--    - 2 Amb. Team Leads  -> user_id 3-4
 --    - 2 Admins          -> user_id 5-6
 --    - Cases reference created_by 1-5
 --    - Patient records reference case_ids 1-15
@@ -28,10 +28,10 @@ VALUES
    'Mrs', 'Abosede',    'Popoola',  'Dispatcher',           'GL-01', 0, 'Available'),
   ('amudat.alagangan',    'amudat.alagangan@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Mrs', 'Amudat',     'Alagangan','Ambulance Supervisor',  'GL-01', 0, 'Available'),
+   'Mrs', 'Amudat',     'Alagangan','Ambulance Team Lead',   'GL-01', 0, 'Available'),
   ('oluwatoyin.orogbemi', 'oluwatoyin.orogbemi@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
-   'Mrs', 'Oluwatoyin', 'Orogbemi', 'Ambulance Supervisor',  'GL-01', 0, 'Available'),
+   'Mrs', 'Oluwatoyin', 'Orogbemi', 'Ambulance Team Lead',   'GL-01', 0, 'Available'),
   ('opeyemi.adeyemo',     'opeyemi.adeyemo@lasambus.gov.ng',
    '$2a$12$EmeAGLbKzEQvQOnCabeRuOhkFQ0nbedYShDHN.WL/BawTVIoNNOCy',
    'Mrs', 'Opeyemi',    'Adeyemo',  'Admin',                 'GL-01', 1, 'Available'),
@@ -223,7 +223,7 @@ VALUES
 
 
 -- ------------------------------------------------------------
--- 5 CANCELLED CASES (case_ids 26-30)
+-- 5 CLOSED CASES (case_ids 26-30)
 -- ------------------------------------------------------------
 INSERT INTO cases
   (date_of_incident, time_of_incident, notified_by, lga_lcda,
@@ -236,27 +236,27 @@ VALUES
    'Road Traffic Accident','Low','Alapere Road, Kosofe',
    'Minor fender-bender, caller reported injuries but none found on scene',
    '2026-03-05','10:15:00',NULL,
-   NULL,NULL,NULL,15,NULL,'Cancelled',5),
+   NULL,NULL,NULL,15,NULL,'Closed',5),
 
   ('2026-03-15','15:30:00','Bystander','Mushin',
    'Medical Emergency','Low','Mushin Roundabout',
    'Report of man feeling faint, patient left scene before crew arrived',
-   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Cancelled',1),
+   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Closed',1),
 
   ('2026-04-01','08:45:00','112 Emergency','Alimosho',
    'Cardiac Arrest','Critical','Command Estate, Ipaja',
    'Second call confirmed patient self-revived and refused transfer',
-   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Cancelled',3),
+   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Closed',3),
 
   ('2026-04-18','20:15:00','Lagos Police Command','Apapa',
    'Drowning','Medium','Tin Can Island Port',
    'Alert cancelled - incident was a drill exercise by port authority',
-   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Cancelled',2),
+   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Closed',2),
 
   ('2026-05-07','11:00:00','Family Member','Ikorodu',
    'Stroke','Medium','Igbogbo, Ikorodu',
    'Family member called in panic, patient already transported by private car',
-   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Cancelled',4);
+   NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Closed',4);
 
 
 -- ------------------------------------------------------------

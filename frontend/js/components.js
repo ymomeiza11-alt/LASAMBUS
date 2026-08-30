@@ -35,6 +35,7 @@ async function injectComponents() {
 
   const role = window.__currentUser.role;
   const canCreateCases = role === 'Admin' || role === 'Dispatcher';
+  const isAdmin = role === 'Admin';
 
   const sidebar = `
     <nav class="lasambus-sidebar" id="sidebar">
@@ -88,6 +89,13 @@ async function injectComponents() {
             <span class="sidebar-label">Export</span>
           </a>
         </li>
+        ${isAdmin ? `
+        <li>
+          <a href="archives.html" class="sidebar-link">
+            <i class="bi bi-archive"></i>
+            <span class="sidebar-label">Archives</span>
+          </a>
+        </li>` : ''}
       </ul>
       <div class="sidebar-datetime">
         <span id="sidebar-date"></span>
@@ -322,7 +330,7 @@ function formatDate(d) {
 
 // Case status badge — page scripts may override for their own status types
 function statusBadge(s) {
-  const map = { Active: 'status-active', Complete: 'status-complete', Cancelled: 'status-cancelled' };
+  const map = { Active: 'status-active', Complete: 'status-complete', Closed: 'status-cancelled' };
   const cls = map[s] || 'status-active';
   const label = s === 'Complete' ? 'Completed' : s;
   return `<span class="status-badge ${cls}">${label}</span>`;

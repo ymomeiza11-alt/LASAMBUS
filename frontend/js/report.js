@@ -11,7 +11,7 @@ async function loadReport() {
 
     document.getElementById('r-total-cases').textContent         = data.totalCases;
     document.getElementById('r-completed').textContent           = data.completed;
-    document.getElementById('r-cancelled').textContent           = data.cancelled;
+    document.getElementById('r-closed').textContent               = data.closed;
 
     document.getElementById('r-avg-monthly').textContent         = data.avgMonthly;
     document.getElementById('r-avg-response').textContent        = data.avgResponse;

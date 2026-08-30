@@ -1,8 +1,12 @@
 const router              = require('express').Router();
+const path                = require('path');
 const { pool }            = require('../config/db');
 const { requireLogin, requireRole } = require('../middleware/auth');
 const { notifyMany }      = require('../utils/notify');
+const { makeUploader, UPLOADS_ROOT } = require('../utils/upload');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = require('docx');
+
+const photoUpload = makeUploader(req => path.join(UPLOADS_ROOT, 'cases', req.params.id));
 
 // ── Helpers ───────────────────────────────────────────
 function minutesBetween(date1, time1, date2, time2) {
@@ -11,6 +15,32 @@ function minutesBetween(date1, time1, date2, time2) {
   const d2 = new Date(`${date2}T${time2}`);
   const diff = Math.round((d2 - d1) / 60000);
   return diff < 0 ? 0 : diff;
+}
+
+// Frees every ambulance/paramedic assigned to a case (used when a case
+// ends, whichever way it ends). Returns the freed paramedic ids so callers
+// can notify them.
+async function freeCaseResources(conn, caseId) {
+  const [ambs] = await conn.query(
+    'SELECT ambulance_id FROM case_ambulances WHERE case_id = ?', [caseId]
+  );
+  if (ambs.length) {
+    const ids = ambs.map(r => r.ambulance_id);
+    await conn.query(
+      `UPDATE ambulances SET status = 'Available' WHERE ambulance_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    );
+  }
+
+  const [pmeds] = await conn.query('SELECT user_id FROM case_paramedics WHERE case_id = ?', [caseId]);
+  if (pmeds.length) {
+    const ids = pmeds.map(r => r.user_id);
+    await conn.query(
+      `UPDATE users SET status = 'Available' WHERE user_id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    );
+  }
+  return pmeds;
 }
 
 function buildWhere(params) {
@@ -76,7 +106,7 @@ router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, r
     date_of_incident, time_of_incident,
     notified_by, lga_lcda, incident_type, incident_severity,
     incident_location, incident_description, dispatcher_notes,
-    dispatch_time, ambulance_id, treatment_centre, paramedic_ids,
+    dispatch_time, ambulance_ids, treatment_centre, paramedic_ids,
   } = req.body;
 
   const padTime = (t) => {
@@ -103,14 +133,14 @@ router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, r
          (date_of_incident, time_of_incident,
           notified_by, lga_lcda, incident_type, incident_severity,
           incident_location, incident_description, dispatcher_notes,
-          dispatch_date, dispatch_time, ambulance_id, treatment_centre,
+          dispatch_date, dispatch_time, treatment_centre,
           response_time_mins, case_status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
       [
         today, incidentTime,
         notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
         incident_location || null, incident_description || null, dispatcher_notes || null,
-        dispatchDate, paddedDispatch, ambulance_id || null, treatment_centre || null,
+        dispatchDate, paddedDispatch, treatment_centre || null,
         responseMins,
         req.session.userId || null,
       ]
@@ -118,8 +148,15 @@ router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, r
 
     const caseId = result.insertId;
 
-    if (ambulance_id) {
-      await conn.query(`UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id = ?`, [ambulance_id]);
+    if (Array.isArray(ambulance_ids) && ambulance_ids.length) {
+      await conn.query(
+        `INSERT IGNORE INTO case_ambulances (case_id, ambulance_id) VALUES ${ambulance_ids.map(() => '(?,?)').join(',')}`,
+        ambulance_ids.flatMap(id => [caseId, id])
+      );
+      await conn.query(
+        `UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id IN (${ambulance_ids.map(() => '?').join(',')})`,
+        ambulance_ids
+      );
     }
 
     if (Array.isArray(paramedic_ids) && paramedic_ids.length) {
@@ -166,11 +203,9 @@ router.get('/:id', requireLogin, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT c.*,
-              u.username AS created_by_username,
-              a.vehicle_name, a.ambulance_code
+              u.username AS created_by_username
        FROM cases c
        LEFT JOIN users u ON u.user_id = c.created_by
-       LEFT JOIN ambulances a ON a.ambulance_id = c.ambulance_id
        WHERE c.case_id = ?`,
       [req.params.id]
     );
@@ -183,7 +218,14 @@ router.get('/:id', requireLogin, async (req, res) => {
       [req.params.id]
     );
 
-    res.json({ ...rows[0], paramedics });
+    const [ambulances] = await pool.query(
+      `SELECT a.ambulance_id, a.vehicle_name, a.ambulance_code
+       FROM case_ambulances ca JOIN ambulances a ON a.ambulance_id = ca.ambulance_id
+       WHERE ca.case_id = ?`,
+      [req.params.id]
+    );
+
+    res.json({ ...rows[0], paramedics, ambulances });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -210,26 +252,8 @@ router.put('/:id', requireLogin, requireRole('Admin'), async (req, res) => {
       [incident_type, incident_severity, lga_lcda, incident_location, incident_description, case_status, req.params.id]
     );
 
-    if (case_status === 'Cancelled') {
-      const [[caseRow]] = await conn.query(
-        'SELECT ambulance_id FROM cases WHERE case_id = ?', [req.params.id]
-      );
-      if (caseRow?.ambulance_id) {
-        await conn.query(
-          `UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`,
-          [caseRow.ambulance_id]
-        );
-      }
-      const [pmeds] = await conn.query(
-        'SELECT user_id FROM case_paramedics WHERE case_id = ?', [req.params.id]
-      );
-      if (pmeds.length) {
-        const ids = pmeds.map(r => r.user_id);
-        await conn.query(
-          `UPDATE users SET status = 'Available' WHERE user_id IN (${ids.map(() => '?').join(',')})`,
-          ids
-        );
-      }
+    if (case_status === 'Closed') {
+      await freeCaseResources(conn, req.params.id);
     }
 
     await conn.commit();
@@ -246,7 +270,7 @@ router.put('/:id', requireLogin, requireRole('Admin'), async (req, res) => {
 // ── Dispatch (Admin or Dispatcher) ────────────────────
 // POST /api/cases/:id/dispatch
 router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, res) => {
-  const { dispatch_date, dispatch_time, ambulance_id, treatment_centre, paramedic_ids } = req.body;
+  const { dispatch_date, dispatch_time, ambulance_ids, treatment_centre, paramedic_ids } = req.body;
   if (!dispatch_date || !dispatch_time) return res.status(400).json({ error: 'dispatch_date and dispatch_time required' });
 
   const conn = await pool.getConnection();
@@ -265,13 +289,33 @@ router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), a
     );
 
     await conn.query(
-      `UPDATE cases SET dispatch_date = ?, dispatch_time = ?, ambulance_id = ?,
+      `UPDATE cases SET dispatch_date = ?, dispatch_time = ?,
                         treatment_centre = ?, response_time_mins = ? WHERE case_id = ?`,
-      [dispatch_date, dispatch_time, ambulance_id || null, treatment_centre || null, responseMins, req.params.id]
+      [dispatch_date, dispatch_time, treatment_centre || null, responseMins, req.params.id]
     );
 
-    if (ambulance_id) {
-      await conn.query(`UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id = ?`, [ambulance_id]);
+    const [[existingAmb]] = await conn.query(
+      'SELECT GROUP_CONCAT(ambulance_id) AS ids FROM case_ambulances WHERE case_id = ?',
+      [req.params.id]
+    );
+    if (existingAmb.ids) {
+      const oldIds = existingAmb.ids.split(',');
+      await conn.query(
+        `UPDATE ambulances SET status = 'Available' WHERE ambulance_id IN (${oldIds.map(() => '?').join(',')})`,
+        oldIds
+      );
+    }
+    await conn.query('DELETE FROM case_ambulances WHERE case_id = ?', [req.params.id]);
+
+    if (Array.isArray(ambulance_ids) && ambulance_ids.length) {
+      await conn.query(
+        `INSERT IGNORE INTO case_ambulances (case_id, ambulance_id) VALUES ${ambulance_ids.map(() => '(?,?)').join(',')}`,
+        ambulance_ids.flatMap(id => [req.params.id, id])
+      );
+      await conn.query(
+        `UPDATE ambulances SET status = 'Assigned' WHERE ambulance_id IN (${ambulance_ids.map(() => '?').join(',')})`,
+        ambulance_ids
+      );
     }
 
     const [[existingPmed]] = await conn.query(
@@ -336,7 +380,7 @@ router.post('/:id/arrival', requireLogin, requireRole('Admin', 'Ambulance Person
     await conn.beginTransaction();
 
     const [[caseRow]] = await conn.query(
-      'SELECT date_of_incident, time_of_incident, dispatch_date, dispatch_time, ambulance_id FROM cases WHERE case_id = ?',
+      'SELECT date_of_incident, time_of_incident, dispatch_date, dispatch_time FROM cases WHERE case_id = ?',
       [req.params.id]
     );
     if (!caseRow) { await conn.rollback(); return res.status(404).json({ error: 'Case not found' }); }
@@ -389,26 +433,23 @@ router.post('/:id/complete', requireLogin, requireRole('Admin', 'Ambulance Perso
     await conn.beginTransaction();
 
     const [[caseRow]] = await conn.query(
-      'SELECT case_status, ambulance_id FROM cases WHERE case_id = ?',
+      'SELECT case_status FROM cases WHERE case_id = ?',
       [req.params.id]
     );
     if (!caseRow) { await conn.rollback(); return res.status(404).json({ error: 'Case not found' }); }
     if (caseRow.case_status === 'Complete') { await conn.rollback(); return res.json({ ok: true }); }
 
+    const [[{ cnt }]] = await conn.query(
+      'SELECT COUNT(*) AS cnt FROM patient_info WHERE case_id = ?', [req.params.id]
+    );
+    if (!cnt) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Add at least one patient record before marking this case complete.' });
+    }
+
     await conn.query('UPDATE cases SET case_status = ? WHERE case_id = ?', ['Complete', req.params.id]);
 
-    if (caseRow.ambulance_id) {
-      await conn.query(`UPDATE ambulances SET status = 'Available' WHERE ambulance_id = ?`, [caseRow.ambulance_id]);
-    }
-
-    const [pmeds] = await conn.query('SELECT user_id FROM case_paramedics WHERE case_id = ?', [req.params.id]);
-    if (pmeds.length) {
-      const ids = pmeds.map(r => r.user_id);
-      await conn.query(
-        `UPDATE users SET status = 'Available' WHERE user_id IN (${ids.map(() => '?').join(',')})`,
-        ids
-      );
-    }
+    const pmeds = await freeCaseResources(conn, req.params.id);
 
     await conn.commit();
 
@@ -434,6 +475,53 @@ router.post('/:id/complete', requireLogin, requireRole('Admin', 'Ambulance Perso
   }
 });
 
+// ── Close Case (Admin or Ambulance Personnel) ─────────
+// Shortcut for cases with no victim, skipping the patient-details requirement.
+// POST /api/cases/:id/close
+router.post('/:id/close', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [[caseRow]] = await conn.query(
+      'SELECT case_status, situation_on_arrival FROM cases WHERE case_id = ?',
+      [req.params.id]
+    );
+    if (!caseRow) { await conn.rollback(); return res.status(404).json({ error: 'Case not found' }); }
+    if (caseRow.case_status === 'Closed') { await conn.rollback(); return res.json({ ok: true }); }
+    if (!['Nothing Sighted', 'No Victim'].includes(caseRow.situation_on_arrival)) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Only cases with situation "Nothing Sighted" or "No Victim" can be closed without patient details.' });
+    }
+
+    await conn.query('UPDATE cases SET case_status = ? WHERE case_id = ?', ['Closed', req.params.id]);
+
+    const pmeds = await freeCaseResources(conn, req.params.id);
+
+    await conn.commit();
+
+    if (pmeds.length) {
+      const caseId = parseInt(req.params.id);
+      try {
+        await notifyMany(
+          pmeds.map(r => r.user_id), 'case_complete',
+          `Case #${caseId} Closed`,
+          `Case #${caseId} has been closed.`,
+          caseId
+        );
+      } catch { /* non-critical */ }
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  } finally {
+    conn.release();
+  }
+});
+
 // ── Case export — Word document (Admin only) ──────────
 // GET /api/cases/:id/export
 router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) => {
@@ -442,11 +530,9 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
 
     const [[c]] = await pool.query(
       `SELECT c.*,
-              u.username AS created_by_username, u.first_name AS cb_first, u.last_name AS cb_last,
-              a.vehicle_name, a.ambulance_code
+              u.username AS created_by_username, u.first_name AS cb_first, u.last_name AS cb_last
        FROM cases c
        LEFT JOIN users u ON u.user_id = c.created_by
-       LEFT JOIN ambulances a ON a.ambulance_id = c.ambulance_id
        WHERE c.case_id = ?`,
       [caseId]
     );
@@ -456,6 +542,13 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
       `SELECT u.username, u.first_name, u.last_name
        FROM case_paramedics cp JOIN users u ON u.user_id = cp.user_id
        WHERE cp.case_id = ?`,
+      [caseId]
+    );
+
+    const [ambulances] = await pool.query(
+      `SELECT a.vehicle_name, a.ambulance_code
+       FROM case_ambulances ca JOIN ambulances a ON a.ambulance_id = ca.ambulance_id
+       WHERE ca.case_id = ?`,
       [caseId]
     );
 
@@ -508,7 +601,8 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
     });
 
     // ── Build content ────────────────────────────────
-    const ambulanceStr = c.ambulance_code ? `${c.ambulance_code} — ${c.vehicle_name}` : null;
+    const ambulanceStr = ambulances.length
+      ? ambulances.map(a => `${a.ambulance_code} — ${a.vehicle_name}`).join(', ') : null;
     const createdByStr = c.created_by_username
       ? `${c.created_by_username} (${c.cb_first} ${c.cb_last})` : null;
     const paramedicsStr = paramedics.length
@@ -643,6 +737,63 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
   } catch (err) {
     console.error('Export error:', err);
     res.status(500).json({ error: 'Export failed' });
+  }
+});
+
+// ── Case Photos (Admin or Ambulance Personnel) ────────
+// POST /api/cases/:id/photos
+router.post('/:id/photos', requireLogin, requireRole('Admin', 'Ambulance Personnel'), (req, res, next) => {
+  photoUpload.array('photos', 10)(req, res, err => {
+    if (err) return res.status(400).json({ error: err.message });
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
+
+    const values = files.map(f => [
+      req.params.id, `cases/${req.params.id}/${f.filename}`, f.originalname, req.session.userId || null,
+    ]);
+    await pool.query(
+      `INSERT INTO case_photos (case_id, file_path, original_filename, uploaded_by) VALUES ${values.map(() => '(?,?,?,?)').join(',')}`,
+      values.flat()
+    );
+    res.status(201).json({ ok: true, count: files.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/cases/:id/photos
+router.get('/:id/photos', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT p.photo_id, p.original_filename, p.created_at, u.username AS uploaded_by_username
+       FROM case_photos p LEFT JOIN users u ON u.user_id = p.uploaded_by
+       WHERE p.case_id = ? ORDER BY p.photo_id DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/cases/:id/photos/:photoId/file
+router.get('/:id/photos/:photoId/file', requireLogin, requireRole('Admin', 'Ambulance Personnel'), async (req, res) => {
+  try {
+    const [[row]] = await pool.query(
+      'SELECT file_path FROM case_photos WHERE photo_id = ? AND case_id = ?',
+      [req.params.photoId, req.params.id]
+    );
+    if (!row) return res.status(404).json({ error: 'Photo not found' });
+    res.sendFile(path.join(UPLOADS_ROOT, row.file_path));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
