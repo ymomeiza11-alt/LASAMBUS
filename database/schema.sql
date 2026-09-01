@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS cases (
   dispatch_time       TIME,                 -- NULL for migrated records
   ambulance_id        INT          DEFAULT NULL,
   treatment_centre    VARCHAR(150) DEFAULT NULL,
+  team_lead_id        INT          DEFAULT NULL,
   arrival_date        DATE,
   arrival_time        TIME,
   situation_on_arrival VARCHAR(255),
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS cases (
   created_by          INT          DEFAULT NULL,
   created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (ambulance_id) REFERENCES ambulances(ambulance_id) ON DELETE SET NULL,
+  FOREIGN KEY (team_lead_id) REFERENCES users(user_id)           ON DELETE SET NULL,
   FOREIGN KEY (created_by)   REFERENCES users(user_id)           ON DELETE SET NULL
 );
 

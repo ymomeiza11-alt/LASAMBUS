@@ -23,12 +23,12 @@ function getOtherValue(selectId, otherId) {
 }
 
 // ── Paramedic / ambulance loaders ─────────────────────
-async function loadAvailableParamedicsDropdown(dropdownId) {
+async function loadAvailableParamedicsDropdown(dropdownId, label = 'Paramedic') {
   try {
     const paramedics = await apiFetch('/api/paramedics/available');
     const sel = document.getElementById(dropdownId);
     if (!sel) return;
-    sel.innerHTML = '<option value="">-- Select Paramedic --</option>' +
+    sel.innerHTML = `<option value="">-- Select ${label} --</option>` +
       paramedics.map(p => `<option value="${p.user_id}">${p.username} — ${p.first_name} ${p.last_name}</option>`).join('');
   } catch { /* leave as is */ }
 }
@@ -96,6 +96,7 @@ function closeCaseOverlay() {
   if (!document.getElementById('new-case-overlay')?.classList.contains('open')) {
     document.body.style.overflow = '';
   }
+  stopArrivalClock();
 }
 
 async function loadCaseDetail(caseId) {
@@ -201,6 +202,8 @@ function populateDispatch(c) {
     document.getElementById('saved-dispatch-time').textContent = c.dispatch_time;
     document.getElementById('saved-ambulance').textContent =
       (c.ambulances || []).map(a => `${a.ambulance_code} — ${a.vehicle_name}`).join(', ') || '—';
+    document.getElementById('saved-team-lead').textContent =
+      c.team_lead_username ? `${c.team_lead_username} (${c.team_lead_first_name} ${c.team_lead_last_name})` : '—';
     document.getElementById('saved-treatment-centre').textContent = c.treatment_centre || '—';
     document.getElementById('saved-paramedics').textContent =
       (c.paramedics || []).map(p => `${p.username} (${p.first_name} ${p.last_name})`).join(', ') || '—';
@@ -214,6 +217,7 @@ function populateDispatch(c) {
     document.getElementById('ambulance-selected-list').innerHTML = '';
     loadAvailableParamedicsDropdown('paramedic-select-dropdown');
     loadAvailableAmbulancesDropdown('ambulance-select-dropdown');
+    loadAvailableParamedicsDropdown('dispatch-team-lead', 'Team Lead');
   }
 }
 
@@ -271,6 +275,7 @@ async function saveDispatch() {
     dispatch_time:    time,
     ambulance_ids:    selectedAmbulances.map(a => parseInt(a.id)),
     treatment_centre: getOtherValue('dispatch-treatment-centre', 'dispatch-treatment-centre-other'),
+    team_lead_id:     document.getElementById('dispatch-team-lead').value ? parseInt(document.getElementById('dispatch-team-lead').value) : null,
     paramedic_ids:    selectedParamedics.map(p => parseInt(p.id)),
   };
   try {
@@ -290,7 +295,21 @@ async function saveDispatch() {
 }
 
 // ── Arrival tab ───────────────────────────────────────
+let arrivalClockInterval = null;
+
+function tickArrivalClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('arrival-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  document.getElementById('arrival-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+function stopArrivalClock() {
+  if (arrivalClockInterval) { clearInterval(arrivalClockInterval); arrivalClockInterval = null; }
+}
+
 function populateArrival(c) {
+  stopArrivalClock();
   if (c.arrival_time) {
     document.getElementById('arrival-form').classList.add('hidden');
     document.getElementById('arrival-saved').classList.remove('hidden');
@@ -309,10 +328,8 @@ function populateArrival(c) {
   } else {
     document.getElementById('arrival-form').classList.remove('hidden');
     document.getElementById('arrival-saved').classList.add('hidden');
-    const now = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    document.getElementById('arrival-date').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-    document.getElementById('arrival-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    tickArrivalClock();
+    arrivalClockInterval = setInterval(tickArrivalClock, 1000);
     document.getElementById('arrival-situation-desc').value = '';
     document.getElementById('arrival-situation').value = '';
     document.getElementById('arrival-situation-other').classList.add('hidden');

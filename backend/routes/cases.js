@@ -106,7 +106,7 @@ router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, r
     date_of_incident, time_of_incident,
     notified_by, lga_lcda, incident_type, incident_severity,
     incident_location, incident_description, dispatcher_notes,
-    dispatch_time, ambulance_ids, treatment_centre, paramedic_ids,
+    dispatch_time, ambulance_ids, treatment_centre, team_lead_id, paramedic_ids,
   } = req.body;
 
   const padTime = (t) => {
@@ -133,14 +133,14 @@ router.post('/', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, r
          (date_of_incident, time_of_incident,
           notified_by, lga_lcda, incident_type, incident_severity,
           incident_location, incident_description, dispatcher_notes,
-          dispatch_date, dispatch_time, treatment_centre,
+          dispatch_date, dispatch_time, treatment_centre, team_lead_id,
           response_time_mins, case_status, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
       [
         today, incidentTime,
         notified_by || null, lga_lcda || null, incident_type || null, incident_severity || null,
         incident_location || null, incident_description || null, dispatcher_notes || null,
-        dispatchDate, paddedDispatch, treatment_centre || null,
+        dispatchDate, paddedDispatch, treatment_centre || null, team_lead_id || null,
         responseMins,
         req.session.userId || null,
       ]
@@ -203,9 +203,11 @@ router.get('/:id', requireLogin, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT c.*,
-              u.username AS created_by_username
+              u.username AS created_by_username,
+              t.username AS team_lead_username, t.first_name AS team_lead_first_name, t.last_name AS team_lead_last_name
        FROM cases c
        LEFT JOIN users u ON u.user_id = c.created_by
+       LEFT JOIN users t ON t.user_id = c.team_lead_id
        WHERE c.case_id = ?`,
       [req.params.id]
     );
@@ -270,7 +272,7 @@ router.put('/:id', requireLogin, requireRole('Admin'), async (req, res) => {
 // ── Dispatch (Admin or Dispatcher) ────────────────────
 // POST /api/cases/:id/dispatch
 router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), async (req, res) => {
-  const { dispatch_date, dispatch_time, ambulance_ids, treatment_centre, paramedic_ids } = req.body;
+  const { dispatch_date, dispatch_time, ambulance_ids, treatment_centre, team_lead_id, paramedic_ids } = req.body;
   if (!dispatch_date || !dispatch_time) return res.status(400).json({ error: 'dispatch_date and dispatch_time required' });
 
   const conn = await pool.getConnection();
@@ -290,8 +292,8 @@ router.post('/:id/dispatch', requireLogin, requireRole('Admin', 'Dispatcher'), a
 
     await conn.query(
       `UPDATE cases SET dispatch_date = ?, dispatch_time = ?,
-                        treatment_centre = ?, response_time_mins = ? WHERE case_id = ?`,
-      [dispatch_date, dispatch_time, treatment_centre || null, responseMins, req.params.id]
+                        treatment_centre = ?, team_lead_id = ?, response_time_mins = ? WHERE case_id = ?`,
+      [dispatch_date, dispatch_time, treatment_centre || null, team_lead_id || null, responseMins, req.params.id]
     );
 
     const [[existingAmb]] = await conn.query(
@@ -530,9 +532,11 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
 
     const [[c]] = await pool.query(
       `SELECT c.*,
-              u.username AS created_by_username, u.first_name AS cb_first, u.last_name AS cb_last
+              u.username AS created_by_username, u.first_name AS cb_first, u.last_name AS cb_last,
+              t.username AS team_lead_username, t.first_name AS team_lead_first, t.last_name AS team_lead_last
        FROM cases c
        LEFT JOIN users u ON u.user_id = c.created_by
+       LEFT JOIN users t ON t.user_id = c.team_lead_id
        WHERE c.case_id = ?`,
       [caseId]
     );
@@ -605,6 +609,8 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
       ? ambulances.map(a => `${a.ambulance_code} — ${a.vehicle_name}`).join(', ') : null;
     const createdByStr = c.created_by_username
       ? `${c.created_by_username} (${c.cb_first} ${c.cb_last})` : null;
+    const teamLeadStr = c.team_lead_username
+      ? `${c.team_lead_username} (${c.team_lead_first} ${c.team_lead_last})` : null;
     const paramedicsStr = paramedics.length
       ? paramedics.map(p => `${p.username} (${p.first_name} ${p.last_name})`).join(', ') : null;
 
@@ -649,6 +655,7 @@ router.get('/:id/export', requireLogin, requireRole('Admin'), async (req, res) =
       field('Dispatch Time', c.dispatch_time),
       field('Ambulance', ambulanceStr),
       field('Treatment Centre', c.treatment_centre),
+      field('Ambulance Team Lead', teamLeadStr),
       field('Response Time', c.response_time_mins != null ? `${c.response_time_mins} minutes` : null),
       field('Paramedics', paramedicsStr),
       field("Dispatcher's Notes", c.dispatcher_notes),

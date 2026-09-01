@@ -140,6 +140,7 @@ function openNewCaseOverlay() {
   document.getElementById('nc-ambulance-list').innerHTML = '';
   loadAvailableParamedicsDropdown('nc-paramedic-dropdown');
   loadAvailableAmbulancesDropdown('nc-ambulance-dropdown');
+  loadAvailableParamedicsDropdown('nc-team-lead', 'Team Lead');
   document.getElementById('new-case-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -232,6 +233,9 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
 
   const treatmentCentre = getOtherValue('nc-treatment-centre', 'nc-treatment-centre-other');
   if (treatmentCentre) payload.treatment_centre = treatmentCentre;
+
+  const teamLeadId = document.getElementById('nc-team-lead')?.value;
+  if (teamLeadId) payload.team_lead_id = parseInt(teamLeadId);
 
   const paramedicIds = ncSelectedParamedics.map(p => parseInt(p.id)).filter(id => !isNaN(id));
   if (paramedicIds.length > 0) payload.paramedic_ids = paramedicIds;

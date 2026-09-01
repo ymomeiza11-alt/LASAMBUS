@@ -15,6 +15,7 @@ function openNewCaseOverlay() {
   document.getElementById('nc-ambulance-list').innerHTML = '';
   loadAvailableParamedicsDropdown('nc-paramedic-dropdown');
   loadAvailableAmbulancesDropdown('nc-ambulance-dropdown');
+  loadAvailableParamedicsDropdown('nc-team-lead', 'Team Lead');
   document.getElementById('new-case-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -100,6 +101,7 @@ document.getElementById('newCaseForm')?.addEventListener('submit', async functio
     dispatch_time:       document.getElementById('nc-dispatch-time').value || null,
     ambulance_ids:       ncSelectedAmbulances.map(a => parseInt(a.id)).filter(id => !isNaN(id)),
     treatment_centre:    getOtherValue('nc-treatment-centre', 'nc-treatment-centre-other'),
+    team_lead_id:        document.getElementById('nc-team-lead').value ? parseInt(document.getElementById('nc-team-lead').value) : null,
     paramedic_ids:       ncSelectedParamedics.map(p => parseInt(p.id)),
   };
 
